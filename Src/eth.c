@@ -93,12 +93,13 @@ void eth_init( void )
    uint32_t idx, duplex, speed = 0;
    int32_t PHYLinkState;
    ETH_MACConfigTypeDef MACConf;
+   ETH_MACFilterConfigTypeDef MACFilter;
    uint8_t MACAddr[6] ;
 
    heth.Instance = ETH;
    MACAddr[0] = 0x00;
-   MACAddr[1] = 0x80;
-   MACAddr[2] = 0xE1;
+   MACAddr[1] = 0x00;
+   MACAddr[2] = 0x00;
    MACAddr[3] = 0x00;
    MACAddr[4] = 0x00;
    MACAddr[5] = 0x00;
@@ -121,6 +122,7 @@ void eth_init( void )
    TxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CSUM | ETH_TX_PACKETS_FEATURES_CRCPAD;
    TxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
    TxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
+   TxConfig.SrcAddrCtrl = ETH_SRC_ADDR_CONTROL_DISABLE;
    
    /* Set PHY IO functions */
    LAN8742_RegisterBusIO(&LAN8742, &LAN8742_IOCtx);
@@ -167,6 +169,15 @@ void eth_init( void )
       MACConf.DuplexMode = duplex;
       MACConf.Speed = speed;
       HAL_ETH_SetMACConfig(&heth, &MACConf);
+      
+      /* Get MAC filter Config MAC */
+      HAL_ETH_GetMACFilterConfig(&heth, &MACFilter);
+      MACFilter.ReceiveAllMode = ENABLE;
+      HAL_ETH_SetMACFilterConfig(&heth, &MACFilter);
+      
+      /* start eth reception */
+      HAL_NVIC_SetPriority(ETH_IRQn, 0, 0);
+      HAL_NVIC_EnableIRQ(ETH_IRQn);
       HAL_ETH_Start_IT(&heth);
       //netif_set_up(netif);
       //netif_set_link_up(netif);
@@ -181,16 +192,16 @@ void eth_init( void )
 /// \return    none
 void eth_output( uint8_t* buffer, uint16_t length )
 {
-   ETH_BufferTypeDef txObj;
-   
    // set mac address
-   heth.Init.MACAddr = buffer+6;
+   //heth.Init.MACAddr = buffer+6;
    
    // init eth with mac address
+   /*
    if (HAL_ETH_Init(&heth) != HAL_OK)
    {
      Error_Handler();
    }
+*/
    
    TxConfig.Length = length;
    TxConfig.TxBuffer->len = length;
@@ -331,4 +342,12 @@ void eth_link_update( void )
        //netif_set_link_up(netif);
      }
    }
+}
+
+void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
+{
+}
+
+void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
+{
 }

@@ -55,8 +55,8 @@
 #define ETHTYPEFIELDLSB          ( 13 )
 #define MINPAYLOAD               ( 46 )
 
-#define UART_PIN_BUS_RTS         GPIO_PIN_3
-#define UART_PIN_BUS_CTS         GPIO_PIN_4
+#define UART_PIN_BUS_RTS         GPIO_PIN_4
+#define UART_PIN_BUS_CTS         GPIO_PIN_3
 
 // Exported types *************************************************************
 typedef struct BUS_UART_RX_s
@@ -69,7 +69,7 @@ typedef struct BUS_UART_RX_s
 } BUS_UART_RX_t;
 
 // Exported functions *********************************************************
-uint8_t              bus_uart_init              ( void );
+void                 uart_init                  ( void );
 uint8_t              bus_uartInitFloating       ( void );
 void                 bus_uart_setRs485          ( uart_cmd_t setter );
 UART_HandleTypeDef*  bus_uart_getHandler        ( void );
@@ -79,10 +79,9 @@ uint16_t             bus_uart_getBuffersize     ( void );
 void                 bus_uart_resetRx           ( void );
 void                 bus_uart_send              ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
 void                 bus_uart_receive           ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
-void                 bus_uart_TxCpltCallback    ( void );
-void                 bus_uart_RxCpltCallback    ( void );
-void                 bus_uart_IdleLnCallback    ( void );
+void                 HAL_UART_IdleLnCallback    ( UART_HandleTypeDef *huart );
 uint32_t             bus_uart_calcCRC           ( uint32_t* dataPointer, uint32_t dataLength );
 uint8_t              bus_uart_frameCheck        ( uint8_t* framePointer, uint16_t frameLength );
 void                 uart_output                ( uint8_t* buffer, uint16_t length );
+void send( void );
 #endif // __PCU_BUS_UART_H

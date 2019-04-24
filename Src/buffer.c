@@ -43,6 +43,8 @@
 static BufferSlot          buffer[STACKLENGTH];
 static BufferSlot*         bufferTxPointer;
 static BufferSlot*         bufferRxPointer;
+static uint16_t            bufferTxPointerCnt;
+static uint16_t            bufferRxPointerCnt;
 static size_t              size;
 static uint32_t            topAddress;
 static FlagStatus          rxPointerIncrFlag;
@@ -62,6 +64,9 @@ void buffer_init( void )
    // reset the pointers
    bufferTxPointer = buffer;
    bufferRxPointer = buffer;
+   // reset the pointer counter
+   bufferTxPointerCnt = 0;
+   bufferRxPointerCnt = 0;
    // reset the flags
    rxPointerIncrFlag = RESET;
    txPointerIncrFlag = RESET;
@@ -80,15 +85,25 @@ void buffer_init( void )
 /// \return    BufferSlot
 uint8_t buffer_setNextSlotTx( void )
 {
-   if( bufferTxPointer+1 <= bufferRxPointer )
+   if( bufferTxPointerCnt < bufferRxPointerCnt )
    {
       // found a slot which is ready to be send
       buffer_incrTxPointer();
+      bufferTxPointerCnt++;
+      // if tx pointer counter has reached the same counter value as the rx pointer counter
+      // reset booth to zero
+      if( bufferTxPointerCnt == bufferRxPointerCnt )
+      {
+         bufferTxPointerCnt = 0;
+         bufferRxPointerCnt = 0;
+      }
       return 1;
    }
    else
    {
-      // no slot available with data to send
+      // Error, in this situation in the logical view the tx pointer would be ahead 
+      // of the rx pointer, a situation that cannot be. So reset here.
+      // buffer_init();
       return 0;
    }
 }
@@ -99,17 +114,20 @@ uint8_t buffer_setNextSlotTx( void )
 /// \return    1 success, 0 error
 uint8_t buffer_setNextSlotRx( void )
 {
-   if( bufferRxPointer+1 != bufferTxPointer )
+   if( bufferRxPointerCnt < STACKLENGTH )
    {
       // found a free slot
       buffer_incrRxPointer();
+      bufferRxPointerCnt++;
       // reset flags on the new pointed struct
       bufferRxPointer->dataLengthInBuffer = 0;
-      bufferRxPointer->toETHFlag = 0xff;
+      bufferRxPointer->messageDirection = NOT_INITIALIZED;
       return 1;
    }
    else
    {
+      // if the counter value is bigger than the STACKLENGTH, it means that the tx pointer
+      // points on the next bufferslot in the array, sending a message. So return a 0.
       return 0;
    }
 }
@@ -121,12 +139,12 @@ uint8_t buffer_setNextSlotRx( void )
 void buffer_output( BufferSlot* output )
 {
    // if toETHFlag is one, it means that the current pointed message is dedicadet for the eth interface
-   if( output->toETHFlag )
+   if( output->messageDirection == UART_TO_ETH )
    {
       // setup the next frame pointed by the tx pointer and send it hrough the eth interface
       eth_output( output->buffer, output->dataLengthInBuffer );
    }
-   else
+   else if( output->messageDirection == ETH_TO_UART )
    {
       // setup the next frame pointed by the tx pointer and send it hrough the uart interface
       uart_output( output->buffer, output->dataLengthInBuffer );
@@ -175,6 +193,16 @@ void buffer_incrRxPointer( void )
 void buffer_setMessageSize( uint16_t messagesize )
 {
    bufferRxPointer->dataLengthInBuffer = messagesize;
+}
+
+// ----------------------------------------------------------------------------
+/// \brief     Sets message direction either the message needs to be forwarded to
+///            uart or eth.
+///
+/// \return    -
+void buffer_setMessageDirection( message_direction_t direction )
+{
+   bufferRxPointer->messageDirection = direction;
 }
 
 // ----------------------------------------------------------------------------

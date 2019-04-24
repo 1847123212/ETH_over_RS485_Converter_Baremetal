@@ -43,6 +43,12 @@ typedef enum
    TRANSMIT             
 } uart_cmd_t;
 
+typedef enum
+{
+   NOT_INITIALIZED,
+   UART_TO_ETH,
+   ETH_TO_UART             
+} message_direction_t;
 /* Exported constants --------------------------------------------------------*/
 
 /* Exported macro ------------------------------------------------------------*/

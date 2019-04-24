@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "uart.h"
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -232,13 +233,18 @@ void DMA1_Stream1_IRQHandler(void)
   */
 void USART2_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART2_IRQn 0 */
-
-  /* USER CODE END USART2_IRQn 0 */
-  HAL_UART_IRQHandler(&huart2);
-  /* USER CODE BEGIN USART2_IRQn 1 */
-
-  /* USER CODE END USART2_IRQn 1 */
+   // check for idle line detection interrupt
+	if(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE) != RESET){
+      __HAL_UART_CLEAR_IDLEFLAG(&huart2);
+		if(__HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_IDLE) != RESET){
+         __HAL_UART_CLEAR_IT(&huart2, UART_CLEAR_IDLEF);
+         // call idle line callback
+         HAL_UART_IdleLnCallback(&huart2);
+      }
+   }else{
+      // excecute HAL_UART_IRQHandler as usual
+      HAL_UART_IRQHandler(&huart2);
+   }
 }
 
 /* USER CODE BEGIN 1 */
