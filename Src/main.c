@@ -22,6 +22,7 @@
 #include "main.h"
 #include "buffer.h"
 #include "eth.h"
+#include "uart.h"
 #include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -54,6 +55,8 @@ CRC_HandleTypeDef hcrc;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_CRC_Init(void);
+static void CPU_CACHE_Enable(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -70,7 +73,9 @@ static void MX_CRC_Init(void);
 int main(void)
 {
    /* USER CODE BEGIN 1 */
-   
+   mpu_config();
+   CPU_CACHE_Enable();
+
    /* USER CODE END 1 */
    
    /* MCU Configuration--------------------------------------------------------*/
@@ -168,14 +173,6 @@ void SystemClock_Config(void)
   */
 static void MX_CRC_Init(void)
 {
-
-  /* USER CODE BEGIN CRC_Init 0 */
-
-  /* USER CODE END CRC_Init 0 */
-
-  /* USER CODE BEGIN CRC_Init 1 */
-
-  /* USER CODE END CRC_Init 1 */
   hcrc.Instance = CRC;
   hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_ENABLE;
   hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
@@ -186,15 +183,21 @@ static void MX_CRC_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN CRC_Init 2 */
-
-  /* USER CODE END CRC_Init 2 */
-
 }
 
-/* USER CODE BEGIN 4 */
+/**
+  * @brief  CPU L1-Cache enable.
+  * @param  None
+  * @retval None
+  */
+static void CPU_CACHE_Enable(void)
+{
+  /* Enable I-Cache */
+  SCB_EnableICache();
 
-/* USER CODE END 4 */
+  /* Enable D-Cache */
+  SCB_EnableDCache();
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

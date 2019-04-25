@@ -38,4 +38,6 @@
 void     eth_init       ( void );
 void     eth_output     ( uint8_t* buffer, uint16_t length );
 void     eth_link_update( void );
+void     mpu_config     (void);
+//void     pbuf_free_custom(struct pbuf *p);
 #endif // __ETH_H

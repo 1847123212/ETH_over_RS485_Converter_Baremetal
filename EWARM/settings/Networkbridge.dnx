@@ -20,7 +20,7 @@
         <stlinkfoundProbes>09241143:43243335:</stlinkfoundProbes>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>3641139865</Checksum>
+        <Checksum>3601464684</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -30,8 +30,8 @@
         <Enabled>_ 0</Enabled>
     </CodeCoverage>
     <Disassembly>
-        <MixedMode>1</MixedMode>
         <InstrCount>0</InstrCount>
+        <MixedMode>1</MixedMode>
     </Disassembly>
     <CallStack>
         <ShowArgs>0</ShowArgs>
@@ -54,6 +54,13 @@
         <ITMportsLogFile>0</ITMportsLogFile>
         <ITMlogFile>$PROJ_DIR$\ITM.log</ITMlogFile>
     </SWOTraceHWSettings>
+    <watch_formats>
+        <Fmt0>{W}1:(uint32_t)(bufferTxPointer+sizeof(BufferSlot))	4	0</Fmt0>
+        <Fmt1>{W}1:(uint32_t)bufferTxPointer+sizeof(BufferSlot)	4	0</Fmt1>
+        <Fmt2>{W}1:sizeof(buffer)	4	0</Fmt2>
+        <Fmt3>{W}1:sizeof(buffer)+(uint32_t)&amp;buffer	4	0</Fmt3>
+        <Fmt4>{W}1:topAddress	4	0</Fmt4>
+    </watch_formats>
     <Trace2>
         <Enabled>0</Enabled>
         <ShowSource>0</ShowSource>
@@ -103,9 +110,23 @@
         <mode>0</mode>
     </DisassembleMode>
     <Breakpoints2>
-        <Bp0>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\buffer.c}.195.4" 0 0 1 "" 0 "" 0</Bp0>
-        <Bp1>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.376.4" 0 0 1 "" 0 "" 0</Bp1>
-        <Count>2</Count>
+        <Bp0>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.397.4" 0 0 1 "" 0 "" 0</Bp0>
+        <Bp1>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_eth.c}.1217.9" 0 0 1 "" 0 "" 0</Bp1>
+        <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp2>
+        <Bp3>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp3>
+        <Bp4>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp4>
+        <Bp5>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp5>
+        <Bp6>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.571.4" 0 0 1 "" 0 "" 0</Bp6>
+        <Bp7>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.577.4" 0 0 1 "" 0 "" 0</Bp7>
+        <Bp8>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.577.4" 0 0 1 "" 0 "" 0</Bp8>
+        <Bp9>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp9>
+        <Bp10>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp10>
+        <Bp11>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\buffer.c}.142.7" 0 0 1 "" 0 "" 0</Bp11>
+        <Bp12>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.565.4" 0 0 1 "" 0 "" 0</Bp12>
+        <Bp13>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.386.7" 0 0 1 "" 0 "" 0</Bp13>
+        <Bp14>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.382.7" 0 0 1 "" 0 "" 0</Bp14>
+        <Bp15>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.380.4" 0 0 1 "" 0 "" 0</Bp15>
+        <Count>16</Count>
     </Breakpoints2>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>

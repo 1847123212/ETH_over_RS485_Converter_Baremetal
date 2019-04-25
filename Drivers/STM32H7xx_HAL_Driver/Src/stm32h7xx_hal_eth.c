@@ -182,6 +182,7 @@ static void ETH_MACDMAConfig(ETH_HandleTypeDef *heth);
 static void ETH_DMATxDescListInit(ETH_HandleTypeDef *heth);
 static void ETH_DMARxDescListInit(ETH_HandleTypeDef *heth);
 static uint32_t ETH_Prepare_Tx_Descriptors(ETH_HandleTypeDef *heth, ETH_TxPacketConfig *pTxConfig, uint32_t ItMode);
+static uint32_t ETH_Prepare_Tx_DescriptorsRDM(ETH_HandleTypeDef *heth, ETH_TxPacketConfig *pTxConfig, uint32_t ItMode);
 /**
   * @}
   */
@@ -2567,6 +2568,116 @@ static uint32_t ETH_Prepare_Tx_Descriptors(ETH_HandleTypeDef *heth, ETH_TxPacket
     SET_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCRF_OWN);
     /* Mark it as NORMAL descriptor */
     CLEAR_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCRF_CTXT);
+  }
+  
+  if(ItMode != ((uint32_t)RESET))
+  {
+    /* Set Interrupt on completition bit */
+    SET_BIT(dmatxdesc->DESC2, ETH_DMATXNDESCRF_IOC);     
+  }
+  else
+  {    
+    /* Clear Interrupt on completition bit */
+    CLEAR_BIT(dmatxdesc->DESC2, ETH_DMATXNDESCRF_IOC); 
+  }
+      
+  /* Mark it as LAST descriptor */
+  SET_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCRF_LD); 
+  
+  dmatxdesclist->CurTxDesc = descidx;
+  
+  /* Return function status */
+  return HAL_ETH_ERROR_NONE;
+}
+
+/**
+  * @brief  Prepare Tx DMA descriptor before transmission.
+  *         called by HAL_ETH_Transmit_IT and HAL_ETH_Transmit_IT() API.
+  * @param  heth: pointer to a ETH_HandleTypeDef structure that contains
+  *         the configuration information for ETHERNET module  
+  * @param  pTxConfig: Tx packet configuration 
+  * @param  ItMode: Enable or disable Tx EOT interrept     
+  * @retval Status
+  */
+static uint32_t ETH_Prepare_Tx_DescriptorsRDM(ETH_HandleTypeDef *heth, ETH_TxPacketConfig *pTxConfig, uint32_t ItMode)
+{
+  ETH_TxDescListTypeDef *dmatxdesclist = &heth->TxDescList; 
+  uint32_t descidx = dmatxdesclist->CurTxDesc;
+  uint32_t firstdescidx = dmatxdesclist->CurTxDesc;
+  uint32_t descnbr = 0, idx;
+  ETH_DMADescTypeDef *dmatxdesc = (ETH_DMADescTypeDef *)dmatxdesclist->TxDesc[descidx];
+  
+  ETH_BufferTypeDef  *txbuffer = pTxConfig->TxBuffer;
+  
+  /* Current Tx Descriptor Owned by DMA: cannot be used by the application  */
+  if(READ_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCWBF_OWN) == ETH_DMATXNDESCWBF_OWN)
+  {
+    return HAL_ETH_ERROR_BUSY;
+  }
+  
+  /***************************************************************************/
+  /*****************    Context descriptor configuration (Optional) **********/
+  /***************************************************************************/
+
+  
+  /***************************************************************************/
+  /*****************    Normal descriptors configuration     *****************/
+  /***************************************************************************/
+  
+  descnbr += 1U;
+  
+  /* Set header or buffer 1 address */
+  WRITE_REG(dmatxdesc->DESC0, (uint32_t)txbuffer->buffer);
+  /* Set header or buffer 1 Length */
+  MODIFY_REG(dmatxdesc->DESC2, ETH_DMATXNDESCRF_B1L, txbuffer->len);
+  
+
+  WRITE_REG(dmatxdesc->DESC1, 0x0);
+  /* Set buffer 2 Length */
+  MODIFY_REG(dmatxdesc->DESC2, ETH_DMATXNDESCRF_B2L, 0x0);		
+
+  
+  if(READ_BIT(pTxConfig->Attributes, ETH_TX_PACKETS_FEATURES_TSO))
+  {
+    /* Set TCP Header length */
+    MODIFY_REG(dmatxdesc->DESC3, ETH_DMATXNDESCRF_THL, (pTxConfig->TCPHeaderLen << 19));
+    /* Set TCP payload length */
+    MODIFY_REG(dmatxdesc->DESC3, ETH_DMATXNDESCRF_TPL, pTxConfig->PayloadLen);	
+    /* Set TCP Segmentation Enabled bit */
+    SET_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCRF_TSE);
+  }
+  else
+  {
+    MODIFY_REG(dmatxdesc->DESC3, ETH_DMATXNDESCRF_FL, pTxConfig->Length);
+    
+    if(READ_BIT(pTxConfig->Attributes, ETH_TX_PACKETS_FEATURES_CSUM))
+    {
+      MODIFY_REG(dmatxdesc->DESC3, ETH_DMATXNDESCRF_CIC, pTxConfig->ChecksumCtrl);
+    }
+    
+    if(READ_BIT(pTxConfig->Attributes, ETH_TX_PACKETS_FEATURES_CRCPAD))
+    {
+      MODIFY_REG(dmatxdesc->DESC3, ETH_DMATXNDESCRF_CPC, pTxConfig->CRCPadCtrl);
+    }
+  }
+  
+  if(READ_BIT(pTxConfig->Attributes, ETH_TX_PACKETS_FEATURES_VLANTAG))
+  {
+    /* Set Vlan Tag control */
+    MODIFY_REG(dmatxdesc->DESC2, ETH_DMATXNDESCRF_VTIR, pTxConfig->VlanCtrl);		
+  }
+  
+  /* Mark it as First Descriptor */
+  SET_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCRF_FD);
+  /* Mark it as NORMAL descriptor */
+  CLEAR_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCRF_CTXT); 
+  /* set OWN bit of FIRST descriptor */
+  SET_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCRF_OWN);
+  
+  /* If source address insertion/replacement is enabled for this packet */
+  if(READ_BIT(pTxConfig->Attributes, ETH_TX_PACKETS_FEATURES_SAIC))
+  {
+    MODIFY_REG(dmatxdesc->DESC3, ETH_DMATXNDESCRF_SAIC, pTxConfig->SrcAddrCtrl);
   }
   
   if(ItMode != ((uint32_t)RESET))

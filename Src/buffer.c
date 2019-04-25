@@ -33,7 +33,7 @@
 #include "buffer.h"
 
 // Private define *************************************************************
-#define STACKLENGTH     50
+#define STACKLENGTH     75
 
 // Private types     **********************************************************
 
@@ -45,10 +45,7 @@ static BufferSlot*         bufferTxPointer;
 static BufferSlot*         bufferRxPointer;
 static uint16_t            bufferTxPointerCnt;
 static uint16_t            bufferRxPointerCnt;
-static size_t              size;
 static uint32_t            topAddress;
-static FlagStatus          rxPointerIncrFlag;
-static FlagStatus          txPointerIncrFlag;
 
 // Private functions **********************************************************
 
@@ -67,13 +64,8 @@ void buffer_init( void )
    // reset the pointer counter
    bufferTxPointerCnt = 0;
    bufferRxPointerCnt = 0;
-   // reset the flags
-   rxPointerIncrFlag = RESET;
-   txPointerIncrFlag = RESET;
-   // calculate size of the array of structs
-   size = sizeof(buffer);
    // top address limit of the array
-   topAddress = (uint32_t)(&buffer + size);
+   topAddress = sizeof(buffer)+(uint32_t)&buffer;
    // start to receive uart(rs485)
    bus_uart_receive( &huart2, (uint8_t*)bufferRxPointer, BUFFERLENGTH );
    // start to receive eth
@@ -158,7 +150,7 @@ void buffer_output( BufferSlot* output )
 BufferSlot* buffer_incrTxPointer( void )
 {
    // check if the pointer needs to be set to the beginning
-   if( (uint32_t)(bufferTxPointer+sizeof(BufferSlot)) < topAddress)
+   if( (uint32_t)bufferTxPointer+sizeof(BufferSlot) < topAddress)
    {
       bufferTxPointer++;
    }
@@ -176,7 +168,7 @@ BufferSlot* buffer_incrTxPointer( void )
 void buffer_incrRxPointer( void )
 {
    // check if the pointer needs to be set to the beginning
-   if( (uint32_t)(bufferTxPointer+sizeof(BufferSlot)) < topAddress)
+   if( (uint32_t)bufferRxPointer+sizeof(BufferSlot) < topAddress)
    {
       bufferRxPointer++;
    }
@@ -214,54 +206,17 @@ BufferSlot* buffer_getRxPointer( void )
    return bufferRxPointer;
 }
 
-void buffer_setRxIncrReq( void )
+// ----------------------------------------------------------------------------
+/// \brief     Sets message size on current pointed bufferslot
+///
+/// \return    -
+uint8_t* buffer_getBufferslotPointer( void )
 {
-   rxPointerIncrFlag = SET;
-}
-
-void buffer_setTxIncrReq( void )
-{
-   txPointerIncrFlag = SET;
+   return bufferRxPointer->buffer;
 }
 
 void buffer_manager( void )
 {
-   // check for the tx flag to increment the pointer on the array of messagebuffers
-   if( txPointerIncrFlag == SET )
-   {
-      // try to increment the pointer by setting the next slot
-      if( buffer_setNextSlotTx() )
-      {
-         // incrementation was successful
-         txPointerIncrFlag = RESET;
-      }
-      else
-      {
-         // incrementation wasn't successfull, because the tx pointer can't overtake the rx pointer
-         // try to increment another time
-         txPointerIncrFlag = SET;
-      }
-   }
-   
-   // check for the rx flag to increment the pointer on the array of messagebuffers
-   if( rxPointerIncrFlag == SET )
-   {
-      // try to increment the pointer by setting the next slot
-      if( buffer_setNextSlotRx() )
-      {
-         // incrementation was successful
-         rxPointerIncrFlag = RESET;
-         // start to receive on the new slot
-         bus_uart_receive( &huart2, bufferRxPointer->buffer, BUFFERLENGTH );
-      }
-      else
-      {
-         // incrementation wasn't successfull, because there is the tx pointer on the next slot
-         // try to increment another time
-         rxPointerIncrFlag = SET;
-      }
-   }
-   
    //is there data to send?
    if( bufferTxPointer->dataLengthInBuffer != 0 )
    {

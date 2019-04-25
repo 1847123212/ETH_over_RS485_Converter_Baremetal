@@ -62,8 +62,6 @@ void uart_init( void )
    __HAL_RCC_USART2_CLK_ENABLE();
    __HAL_RCC_GPIOD_CLK_ENABLE();
 
-
-
    /*Configure GPIO pin Output Level */
    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3|GPIO_PIN_4, GPIO_PIN_RESET);
    /*Configure GPIO pins : PD3 PD4 */
@@ -99,8 +97,8 @@ void uart_init( void )
    */
    GPIO_InitStruct.Pin                       = GPIO_PIN_5|GPIO_PIN_6;
    GPIO_InitStruct.Mode                      = GPIO_MODE_AF_PP;
-   GPIO_InitStruct.Pull                      = GPIO_NOPULL;
-   GPIO_InitStruct.Speed                     = GPIO_SPEED_FREQ_LOW;
+   GPIO_InitStruct.Pull                      = GPIO_PULLUP;
+   GPIO_InitStruct.Speed                     = GPIO_SPEED_FREQ_VERY_HIGH;
    GPIO_InitStruct.Alternate                 = GPIO_AF7_USART2;
    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
@@ -335,8 +333,8 @@ void bus_uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size
 /// \return    none
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart2 )
 {
-   // set the tx pointer increment flag to set it to the next bufferslot
-   buffer_setTxIncrReq();
+   // increment the bufferslot tx pointer
+   buffer_setNextSlotTx();
    
    // start to receive data
    bus_uart_receive( huart2, (uint8_t*)buffer_getRxPointer(), BUFFERLENGTH );
@@ -392,9 +390,8 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
    buffer_setMessageDirection( UART_TO_ETH );
    // set message size
    buffer_setMessageSize( frameSize );
-  
-   // set the rx pointer increment flag to set it to the next bufferslot
-   buffer_setRxIncrReq();
+   // increment the bufferslot rx pointer
+   buffer_setNextSlotRx();
 }
 
 void send( void )

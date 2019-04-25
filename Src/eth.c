@@ -31,6 +31,10 @@
 #include <stdio.h>
 #include "buffer.h"
 #include "lan8742.h"
+#include "uart.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "eth.h"
 
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
@@ -55,6 +59,17 @@ ETH_DMADescTypeDef DMATxDscrTab[ETH_TX_DESC_CNT] __attribute__((section(".TxDecr
 uint8_t Rx_Buff[ETH_RX_DESC_CNT][ETH_MAX_PACKET_SIZE] __attribute__((section(".RxArraySection"))); /* Ethernet Receive Buffers */
 
 #endif
+
+//struct pbuf_custom rx_pbuf[ETH_RX_DESC_CNT];
+uint32_t current_pbuf_idx =0;
+
+#define ETH_MAC_ADDR0           ((uint8_t)0x02)
+#define ETH_MAC_ADDR1           ((uint8_t)0x00)
+#define ETH_MAC_ADDR2           ((uint8_t)0x00)
+#define ETH_MAC_ADDR3           ((uint8_t)0x00)
+#define ETH_MAC_ADDR4           ((uint8_t)0x00)
+#define ETH_MAC_ADDR5           ((uint8_t)0x00)
+#define ETH_RX_BUFFER_SIZE      (1536UL)
 
 // Private types     **********************************************************
 
@@ -84,6 +99,54 @@ lan8742_IOCtx_t  LAN8742_IOCtx = {ETH_PHY_IO_Init,
                                ETH_PHY_IO_GetTick};
 
 /**
+  * @brief  Configure the MPU attributes 
+  * @param  None
+  * @retval None
+  */
+void mpu_config(void)
+{
+  MPU_Region_InitTypeDef MPU_InitStruct;
+  
+  /* Disable the MPU */
+  HAL_MPU_Disable();
+
+  /* Configure the MPU attributes as Device not cacheable 
+     for ETH DMA descriptors */
+  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+  MPU_InitStruct.BaseAddress = 0x30040000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_256B;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+  MPU_InitStruct.SubRegionDisable = 0x00;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+  
+  /* Configure the MPU attributes as Cacheable write through 
+     for LwIP RAM heap which contains the Tx buffers */
+  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+  MPU_InitStruct.BaseAddress = 0x30044000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_16KB;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+  MPU_InitStruct.SubRegionDisable = 0x00;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /* Enable the MPU */
+  HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+}
+
+/**
   * @brief ETH Initialization Function
   * @param None
   * @retval None
@@ -94,35 +157,35 @@ void eth_init( void )
    int32_t PHYLinkState;
    ETH_MACConfigTypeDef MACConf;
    ETH_MACFilterConfigTypeDef MACFilter;
-   uint8_t MACAddr[6] ;
-
-   heth.Instance = ETH;
-   MACAddr[0] = 0x00;
-   MACAddr[1] = 0x00;
-   MACAddr[2] = 0x00;
-   MACAddr[3] = 0x00;
-   MACAddr[4] = 0x00;
-   MACAddr[5] = 0x00;
-   heth.Init.MACAddr = &MACAddr[0];
-   heth.Init.MediaInterface = HAL_ETH_MII_MODE;
-   heth.Init.TxDesc = DMATxDscrTab;
-   heth.Init.RxDesc = DMARxDscrTab;
-   heth.Init.RxBuffLen = 1524;
+   uint8_t macaddress[6]= {ETH_MAC_ADDR0, ETH_MAC_ADDR1, ETH_MAC_ADDR2, ETH_MAC_ADDR3, ETH_MAC_ADDR4, ETH_MAC_ADDR5};
    
-   /* USER CODE BEGIN MACADDRESS */
-     
-   /* USER CODE END MACADDRESS */
+   mpu_config();
+  
+   heth.Instance              = ETH;  
+   heth.Init.MACAddr          = macaddress;
+   heth.Init.MediaInterface   = HAL_ETH_RMII_MODE;
+   heth.Init.RxDesc           = DMARxDscrTab;
+   heth.Init.TxDesc           = DMATxDscrTab;
+   heth.Init.RxBuffLen        = ETH_RX_BUFFER_SIZE;
    
    if (HAL_ETH_Init(&heth) != HAL_OK)
    {
      Error_Handler();
    }
    
+   for(idx = 0; idx < ETH_RX_DESC_CNT; idx ++)
+   {
+      HAL_ETH_DescAssignMemory(&heth, idx, Rx_Buff[idx], NULL);
+
+      /* Set Custom pbuf free function */
+      //rx_pbuf[idx].custom_free_function = pbuf_free_custom;
+   }
+   
    memset(&TxConfig, 0 , sizeof(ETH_TxPacketConfig));
    TxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CSUM | ETH_TX_PACKETS_FEATURES_CRCPAD;
    TxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
    TxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
-   TxConfig.SrcAddrCtrl = ETH_SRC_ADDR_CONTROL_DISABLE;
+   //TxConfig.SrcAddrCtrl = ETH_SRC_ADDR_CONTROL_DISABLE;
    
    /* Set PHY IO functions */
    LAN8742_RegisterBusIO(&LAN8742, &LAN8742_IOCtx);
@@ -135,8 +198,6 @@ void eth_init( void )
    /* Get link state */  
    if(PHYLinkState <= LAN8742_STATUS_LINK_DOWN)
    {
-      //netif_set_link_down(netif);
-      //netif_set_down(netif);
    }
    else 
    {
@@ -176,12 +237,123 @@ void eth_init( void )
       HAL_ETH_SetMACFilterConfig(&heth, &MACFilter);
       
       /* start eth reception */
-      HAL_NVIC_SetPriority(ETH_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(ETH_IRQn);
       HAL_ETH_Start_IT(&heth);
-      //netif_set_up(netif);
-      //netif_set_link_up(netif);
    }
+}
+
+/**
+* @brief ETH MSP Initialization
+* This function configures the hardware resources used in this example
+* @param heth: ETH handle pointer
+* @retval None
+*/
+void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
+{
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  /* Ethernett MSP init: RMII Mode */
+  
+  /* Enable GPIOs clocks */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+
+/* Ethernet pins configuration ************************************************/
+  /*
+        RMII_REF_CLK ----------------------> PA1
+        RMII_MDIO -------------------------> PA2
+        RMII_MDC --------------------------> PC1
+        RMII_MII_CRS_DV -------------------> PA7
+        RMII_MII_RXD0 ---------------------> PC4
+        RMII_MII_RXD1 ---------------------> PC5
+        RMII_MII_RXER ---------------------> PG2
+        RMII_MII_TX_EN --------------------> PG11
+        RMII_MII_TXD0 ---------------------> PG13
+        RMII_MII_TXD1 ---------------------> PB13
+  */
+
+  /* Configure PA1, PA2 and PA7 */
+  GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStructure.Pull = GPIO_NOPULL; 
+  GPIO_InitStructure.Alternate = GPIO_AF11_ETH;
+  GPIO_InitStructure.Pin = GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_7;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
+  
+  /* Configure PB13 */
+  GPIO_InitStructure.Pin = GPIO_PIN_13;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+  
+  /* Configure PC1, PC4 and PC5 */
+  GPIO_InitStructure.Pin = GPIO_PIN_1 | GPIO_PIN_4 | GPIO_PIN_5;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+  /* Configure PG2, PG11, PG13 and PG14 */
+  GPIO_InitStructure.Pin =  GPIO_PIN_2 | GPIO_PIN_11 | GPIO_PIN_13;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStructure);	
+  
+  /* Enable the Ethernet global Interrupt */
+  HAL_NVIC_SetPriority(ETH_IRQn, 0x7, 0);
+  HAL_NVIC_EnableIRQ(ETH_IRQn);
+  
+  /* Enable Ethernet clocks */
+  __HAL_RCC_ETH1MAC_CLK_ENABLE();
+  __HAL_RCC_ETH1TX_CLK_ENABLE();
+  __HAL_RCC_ETH1RX_CLK_ENABLE();
+}
+
+/**
+* @brief ETH MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param heth: ETH handle pointer
+* @retval None
+*/
+void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
+{
+  if(heth->Instance==ETH)
+  {
+  /* USER CODE BEGIN ETH_MspDeInit 0 */
+
+  /* USER CODE END ETH_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_ETH1MAC_CLK_DISABLE();
+    __HAL_RCC_ETH1TX_CLK_DISABLE();
+    __HAL_RCC_ETH1RX_CLK_DISABLE();
+  
+    /**ETH GPIO Configuration    
+    PE2     ------> ETH_TXD3
+    PC1     ------> ETH_MDC
+    PC2_C     ------> ETH_TXD2
+    PC3_C     ------> ETH_TX_CLK
+    PA0     ------> ETH_CRS
+    PA1     ------> ETH_RX_CLK
+    PA2     ------> ETH_MDIO
+    PA3     ------> ETH_COL
+    PA7     ------> ETH_RX_DV
+    PC4     ------> ETH_RXD0
+    PC5     ------> ETH_RXD1
+    PB0     ------> ETH_RXD2
+    PB1     ------> ETH_RXD3
+    PB11     ------> ETH_TX_EN
+    PB12     ------> ETH_TXD0
+    PB13     ------> ETH_TXD1 
+    */
+    HAL_GPIO_DeInit(GPIOE, GPIO_PIN_2);
+
+    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4 
+                          |GPIO_PIN_5);
+
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3 
+                          |GPIO_PIN_7);
+
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_11|GPIO_PIN_12 
+                          |GPIO_PIN_13);
+
+  /* USER CODE BEGIN ETH_MspDeInit 1 */
+
+  /* USER CODE END ETH_MspDeInit 1 */
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -191,23 +363,33 @@ void eth_init( void )
 ///
 /// \return    none
 void eth_output( uint8_t* buffer, uint16_t length )
-{
-   // set mac address
-   //heth.Init.MACAddr = buffer+6;
+{   
+   ETH_BufferTypeDef Txbuffer;
+   uint32_t ramBuffer;
+   ramBuffer = (uint32_t)0x30044000;
    
-   // init eth with mac address
-   /*
-   if (HAL_ETH_Init(&heth) != HAL_OK)
+   memcpy((void*)ramBuffer, buffer, length);   
+   
+   
+   Txbuffer.buffer = (uint8_t*)ramBuffer+PREAMBLESFDLENGTH;
+   Txbuffer.len = length-PREAMBLESFDLENGTH-CRC32LENGTH;
+   Txbuffer.next = NULL;
+   
+   TxConfig.Length = length-PREAMBLESFDLENGTH-CRC32LENGTH;
+   TxConfig.TxBuffer = &Txbuffer;
+   
+   /* Clean and Invalidate data cache */
+   SCB_CleanInvalidateDCache();
+   __DSB();
+   
+   if(HAL_ETH_Transmit(&heth, &TxConfig,50) == HAL_OK)
    {
-     Error_Handler();
+      TxConfig.TxBuffer->next = NULL;
    }
-*/
-   
-   TxConfig.Length = length;
-   TxConfig.TxBuffer->len = length;
-   TxConfig.TxBuffer->buffer = buffer;
-   
-   HAL_ETH_Transmit_IT(&heth, &TxConfig);
+   else
+   {
+      TxConfig.TxBuffer->next = NULL;
+   }
 }
 
 /*******************************************************************************
@@ -346,8 +528,56 @@ void eth_link_update( void )
 
 void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 {
+   static uint32_t framelength = 0;
+   static ETH_BufferTypeDef RxBuff;
+
+   // get data from the buffer
+   HAL_ETH_GetRxDataLength(heth, &framelength);
+   HAL_ETH_GetRxDataBuffer(heth, &RxBuff); 
+   // copy data into the current bufferslot
+   memcpy((void*)buffer_getBufferslotPointer(), (void const*)RxBuff.buffer, framelength);
+   // set message direction
+   buffer_setMessageDirection( ETH_TO_UART );
+   // set message size
+   buffer_setMessageSize( framelength );
+   // increment the bufferslot rx pointer
+   buffer_setNextSlotRx();
+   // set the RX descriptor for next receive
+   HAL_ETH_BuildRxDescriptors(heth);
 }
 
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
 {
+   // set the tx pointer increment flag to set it to the next bufferslot
+   buffer_setNextSlotRx();
+}
+
+void HAL_ETH_DMAErrorCallback(ETH_HandleTypeDef *heth)
+{
+   // set the tx pointer increment flag to set it to the next bufferslot
+   buffer_setNextSlotRx();
+}
+
+void HAL_ETH_MACErrorCallback(ETH_HandleTypeDef *heth)
+{
+   // set the tx pointer increment flag to set it to the next bufferslot
+   buffer_setNextSlotRx();
+}
+
+void HAL_ETH_PMTCallback(ETH_HandleTypeDef *heth)
+{
+   // set the tx pointer increment flag to set it to the next bufferslot
+   buffer_setNextSlotRx();
+}
+
+void HAL_ETH_EEECallback(ETH_HandleTypeDef *heth)
+{
+   // set the tx pointer increment flag to set it to the next bufferslot
+   buffer_setNextSlotRx();
+}
+
+void HAL_ETH_WakeUpCallback(ETH_HandleTypeDef *heth)
+{
+   // set the tx pointer increment flag to set it to the next bufferslot
+   buffer_setNextSlotRx();
 }

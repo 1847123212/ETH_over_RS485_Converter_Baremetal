@@ -60,6 +60,7 @@
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart2;
+extern ETH_HandleTypeDef heth;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -245,6 +246,16 @@ void USART2_IRQHandler(void)
       // excecute HAL_UART_IRQHandler as usual
       HAL_UART_IRQHandler(&huart2);
    }
+}
+
+/**
+  * @brief  This function handles Ethernet interrupt request.
+  * @param  None
+  * @retval None
+  */
+void ETH_IRQHandler(void)
+{
+  HAL_ETH_IRQHandler(&heth);
 }
 
 /* USER CODE BEGIN 1 */
