@@ -46,6 +46,7 @@ static BufferSlot*         bufferRxPointer;
 static uint16_t            bufferTxPointerCnt;
 static uint16_t            bufferRxPointerCnt;
 static uint32_t            topAddress;
+static uint8_t             bufferLockFlag;
 
 // Private functions **********************************************************
 
@@ -66,9 +67,8 @@ void buffer_init( void )
    bufferRxPointerCnt = 0;
    // top address limit of the array
    topAddress = sizeof(buffer)+(uint32_t)&buffer;
-   // start to receive uart(rs485)
-   bus_uart_receive( &huart2, (uint8_t*)bufferRxPointer, BUFFERLENGTH );
-   // start to receive eth
+   // reset the buffer lock flag
+   bufferLockFlag = 0;
 }
 
 // ----------------------------------------------------------------------------
@@ -106,7 +106,7 @@ uint8_t buffer_setNextSlotTx( void )
 /// \return    1 success, 0 error
 uint8_t buffer_setNextSlotRx( void )
 {
-   if( bufferRxPointerCnt < STACKLENGTH )
+   if( bufferRxPointerCnt < STACKLENGTH-1 )
    {
       // found a free slot
       buffer_incrRxPointer();
@@ -223,4 +223,31 @@ void buffer_manager( void )
       // start to send data
       buffer_output( bufferTxPointer );
    }
+}
+
+// ----------------------------------------------------------------------------
+/// \brief     locks the ringbuffer access as shared source
+///
+/// \return    -
+void buffer_lock( void )
+{
+   bufferLockFlag = 1;
+}
+
+// ----------------------------------------------------------------------------
+/// \brief     unlocks the ringbuffer access as shared source
+///
+/// \return    -
+void buffer_unlock( void )
+{
+   bufferLockFlag = 0;
+}
+
+// ----------------------------------------------------------------------------
+/// \brief     unlocks the ringbuffer access as shared source
+///
+/// \return    -
+uint8_t buffer_getLockStatus( void )
+{
+   return bufferLockFlag;
 }

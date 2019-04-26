@@ -94,13 +94,13 @@ int main(void)
    
    /* USER CODE END SysInit */
    
+   // init buffer and start to reveive
+   buffer_init();
+   
    /* Initialize all configured peripherals */
    MX_CRC_Init();
    eth_init();
    uart_init();
-   
-   // init buffer and start to reveive
-   buffer_init();
   
    /* Infinite loop */
    while (1)

@@ -74,6 +74,8 @@ uint32_t current_pbuf_idx =0;
 // Private types     **********************************************************
 
 // Private variables **********************************************************
+static uint8_t macaddress[6] = {ETH_MAC_ADDR0, ETH_MAC_ADDR1, ETH_MAC_ADDR2, ETH_MAC_ADDR3, ETH_MAC_ADDR4, ETH_MAC_ADDR5};
+static const uint32_t ramBuffer = (uint32_t)0x30044000;
 
 // Global variables ***********************************************************
 extern UART_HandleTypeDef     huart2;
@@ -157,7 +159,6 @@ void eth_init( void )
    int32_t PHYLinkState;
    ETH_MACConfigTypeDef MACConf;
    ETH_MACFilterConfigTypeDef MACFilter;
-   uint8_t macaddress[6]= {ETH_MAC_ADDR0, ETH_MAC_ADDR1, ETH_MAC_ADDR2, ETH_MAC_ADDR3, ETH_MAC_ADDR4, ETH_MAC_ADDR5};
    
    mpu_config();
   
@@ -185,7 +186,6 @@ void eth_init( void )
    TxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CSUM | ETH_TX_PACKETS_FEATURES_CRCPAD;
    TxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
    TxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
-   //TxConfig.SrcAddrCtrl = ETH_SRC_ADDR_CONTROL_DISABLE;
    
    /* Set PHY IO functions */
    LAN8742_RegisterBusIO(&LAN8742, &LAN8742_IOCtx);
@@ -294,7 +294,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
   HAL_GPIO_Init(GPIOG, &GPIO_InitStructure);	
   
   /* Enable the Ethernet global Interrupt */
-  HAL_NVIC_SetPriority(ETH_IRQn, 0x7, 0);
+  HAL_NVIC_SetPriority(ETH_IRQn, 10, 0);
   HAL_NVIC_EnableIRQ(ETH_IRQn);
   
   /* Enable Ethernet clocks */
@@ -364,12 +364,9 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
 /// \return    none
 void eth_output( uint8_t* buffer, uint16_t length )
 {   
-   ETH_BufferTypeDef Txbuffer;
-   uint32_t ramBuffer;
-   ramBuffer = (uint32_t)0x30044000;
-   
+   static ETH_BufferTypeDef Txbuffer;
+
    memcpy((void*)ramBuffer, buffer, length);   
-   
    
    Txbuffer.buffer = (uint8_t*)ramBuffer+PREAMBLESFDLENGTH;
    Txbuffer.len = length-PREAMBLESFDLENGTH-CRC32LENGTH;
@@ -378,18 +375,27 @@ void eth_output( uint8_t* buffer, uint16_t length )
    TxConfig.Length = length-PREAMBLESFDLENGTH-CRC32LENGTH;
    TxConfig.TxBuffer = &Txbuffer;
    
-   /* Clean and Invalidate data cache */
-   SCB_CleanInvalidateDCache();
-   __DSB();
+   // set mac address
+   macaddress[0] = *(buffer+PREAMBLESFDLENGTH+MACDSTADRLENGTH);
+   macaddress[1] = *(buffer+PREAMBLESFDLENGTH+MACDSTADRLENGTH+1);
+   macaddress[2] = *(buffer+PREAMBLESFDLENGTH+MACDSTADRLENGTH+2);
+   macaddress[3] = *(buffer+PREAMBLESFDLENGTH+MACDSTADRLENGTH+3);
+   macaddress[4] = *(buffer+PREAMBLESFDLENGTH+MACDSTADRLENGTH+4);
+   macaddress[5] = *(buffer+PREAMBLESFDLENGTH+MACDSTADRLENGTH+5);
+   heth.Init.MACAddr = macaddress;
+   // Set MAC addr bits 32 to 47
+   heth.Instance->MACA0HR = ((heth.Init.MACAddr[5] << 8) | heth.Init.MACAddr[4]);
+   // Set MAC addr bits 0 to 31
+   heth.Instance->MACA0LR = ((heth.Init.MACAddr[3] << 24) | (heth.Init.MACAddr[2] << 16) | (heth.Init.MACAddr[1] << 8) | heth.Init.MACAddr[0]);
    
-   if(HAL_ETH_Transmit(&heth, &TxConfig,50) == HAL_OK)
-   {
-      TxConfig.TxBuffer->next = NULL;
-   }
-   else
-   {
-      TxConfig.TxBuffer->next = NULL;
-   }
+   // Clean and Invalidate data cache
+   //SCB_CleanInvalidateDCache();
+   
+   // send the data
+   HAL_ETH_Transmit_IT(&heth, &TxConfig);
+   
+   // increment pointer to set it to the next bufferslot
+   buffer_setNextSlotTx();
 }
 
 /*******************************************************************************
@@ -533,7 +539,13 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 
    // get data from the buffer
    HAL_ETH_GetRxDataLength(heth, &framelength);
-   HAL_ETH_GetRxDataBuffer(heth, &RxBuff); 
+   HAL_ETH_GetRxDataBuffer(heth, &RxBuff);
+   
+   // check if bufferslot access is ready, if not wait
+   while(buffer_getLockStatus() == 1);
+   // access is now ready, lock the buffer access
+   buffer_lock();
+   
    // copy data into the current bufferslot
    memcpy((void*)buffer_getBufferslotPointer(), (void const*)RxBuff.buffer, framelength);
    // set message direction
@@ -542,14 +554,16 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
    buffer_setMessageSize( framelength );
    // increment the bufferslot rx pointer
    buffer_setNextSlotRx();
+   
+   // unlock access
+   buffer_unlock();
+   
    // set the RX descriptor for next receive
    HAL_ETH_BuildRxDescriptors(heth);
 }
 
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
 {
-   // set the tx pointer increment flag to set it to the next bufferslot
-   buffer_setNextSlotRx();
 }
 
 void HAL_ETH_DMAErrorCallback(ETH_HandleTypeDef *heth)

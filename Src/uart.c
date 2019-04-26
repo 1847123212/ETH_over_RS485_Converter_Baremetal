@@ -38,6 +38,8 @@
 // Private variables **********************************************************
 static BUS_UART_RX_t          busuartRx;
 static const uint8_t          preAmbleSFD[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAB};
+static uint8_t                rxBuffer[BUFFERLENGTH];
+static uint8_t                txBuffer[BUFFERLENGTH];
 
 // Global variables ***********************************************************
 UART_HandleTypeDef huart2;
@@ -102,8 +104,9 @@ void uart_init( void )
    GPIO_InitStruct.Alternate                 = GPIO_AF7_USART2;
    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-   /* USART2 DMA Init */
-   /* USART2_RX Init */
+   /*
+   // USART2 DMA Init
+   // USART2_RX Init
    hdma_usart2_rx.Instance                  = DMA1_Stream0;
    hdma_usart2_rx.Init.Request              = DMA_REQUEST_USART2_RX;
    hdma_usart2_rx.Init.Direction            = DMA_PERIPH_TO_MEMORY;
@@ -120,7 +123,7 @@ void uart_init( void )
    }
    __HAL_LINKDMA(&huart2,hdmarx,hdma_usart2_rx);
 
-   /* USART2_TX Init */
+   // USART2_TX Init
    hdma_usart2_tx.Instance                  = DMA1_Stream1;
    hdma_usart2_tx.Init.Request              = DMA_REQUEST_USART2_TX;
    hdma_usart2_tx.Init.Direction            = DMA_MEMORY_TO_PERIPH;
@@ -136,6 +139,7 @@ void uart_init( void )
      Error_Handler();
    }
    __HAL_LINKDMA(&huart2,hdmatx,hdma_usart2_tx);
+   */
 
    // clear it pending bit to avoid trigger at beginning
    __HAL_UART_CLEAR_IT(&huart2, UART_CLEAR_IDLEF);
@@ -143,10 +147,16 @@ void uart_init( void )
    // set irq
    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
    HAL_NVIC_EnableIRQ(USART2_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
-   HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+   //HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+   //HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+   //HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+   //HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+   
+   // set preamble in the tx buffer
+   memcpy(txBuffer, preAmbleSFD, PREAMBLESFDLENGTH);
+   
+   // start to receive uart(rs485)
+   bus_uart_receive( &huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
 
 
@@ -246,15 +256,8 @@ uint8_t bus_uart_frameCheck( uint8_t* framePointer, uint16_t frameLength )
 void uart_output( uint8_t* buffer, uint16_t length )
 {
    static     uint8_t*  crcFragment;
-   static     uint8_t   txBuffer[1600];
    static     uint32_t  crc32;
-   
-   // set preamble (could be avoided, by setting the preamble+sfd at the beginning)
-   for( uint8_t i=0; i<PREAMBLESFDLENGTH; i++ )
-   {
-      txBuffer[i] = preAmbleSFD[i];
-   }
-   
+      
    // copy data into tx output buffer
    memcpy( &txBuffer[MACDSTFIELD], buffer, length );
    
@@ -268,10 +271,12 @@ void uart_output( uint8_t* buffer, uint16_t length )
    {
       *(txBuffer+MACDSTFIELD+length+i) = *(crcFragment+j);
    }
-   length += CRC32LENGTH;
+   
+   // add crc32 length to the total length
+   length += 4;
    
    // add preamble/sfd length 
-   length += PREAMBLESFDLENGTH;
+   length += 8;
    
    // send the data in the buffer
    bus_uart_send(&huart2, txBuffer, length);
@@ -304,6 +309,10 @@ void bus_uart_send( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size )
    // start transmitting in interrupt mode
    //HAL_UART_Transmit_DMA(huart2, pData, Size);
    HAL_UART_Transmit_IT(huart2, pData, Size);
+   // increment the bufferslot tx pointer
+   buffer_setNextSlotTx();   
+   // start to receive data
+   // bus_uart_receive( huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
 
 //------------------------------------------------------------------------------
@@ -333,11 +342,8 @@ void bus_uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size
 /// \return    none
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart2 )
 {
-   // increment the bufferslot tx pointer
-   buffer_setNextSlotTx();
-   
    // start to receive data
-   bus_uart_receive( huart2, (uint8_t*)buffer_getRxPointer(), BUFFERLENGTH );
+   bus_uart_receive( huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
 
 //------------------------------------------------------------------------------
@@ -351,6 +357,10 @@ void HAL_UART_RxCpltCallback( UART_HandleTypeDef *huart2 )
 {
 }
 
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+}
+
 //------------------------------------------------------------------------------
 /// \brief     Rx idle line detection callback                   
 ///
@@ -359,43 +369,47 @@ void HAL_UART_RxCpltCallback( UART_HandleTypeDef *huart2 )
 /// \return    none
 void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
 {
-   //volatile uint16_t bytesLeftDmaBuffer = __HAL_DMA_GET_COUNTER(huart2->hdmarx);
-   volatile uint16_t bytesLeftDmaBuffer = huart2->RxXferCount;
+   //volatile uint16_t bytesLeft = __HAL_DMA_GET_COUNTER(huart2->hdmarx);
+   volatile uint16_t bytesLeft = huart2->RxXferCount;
    static uint16_t frameSize;
    
    // stop irq 
-   HAL_UART_DMAStop(huart2);
+   //HAL_UART_DMAStop(huart2);
    HAL_UART_Abort_IT(huart2);
    
    // get message length
-   frameSize = BUFFERLENGTH - bytesLeftDmaBuffer;
+   frameSize = BUFFERLENGTH - bytesLeft;
    
    // abort if input data is 0 bytes in length or too long or too short for a ethernet frame
    if( frameSize == 0 || frameSize > ETHSIZE+PREAMBLESFDLENGTH || frameSize < MINSIZE)
    {
       // start receiving with new flags
-      bus_uart_receive( huart2, (uint8_t*)buffer_getRxPointer(), BUFFERLENGTH );
+      bus_uart_receive( huart2, rxBuffer, BUFFERLENGTH );
       return;
    }
    
    // abort if the message doesn't have a preamble, sfd and valid fcs
-   if( bus_uart_frameCheck( (uint8_t*)buffer_getRxPointer(), frameSize ) != 1 )
+   if( bus_uart_frameCheck( rxBuffer, frameSize ) != 1 )
    {
       // start receiving with new flags
-      bus_uart_receive( huart2, (uint8_t*)buffer_getRxPointer(), BUFFERLENGTH );
+      bus_uart_receive( huart2, rxBuffer, BUFFERLENGTH );
       return;
    }
    
+   // check if bufferslot access is ready, if not wait
+   while(buffer_getLockStatus() == 1);
+   // access is now ready, lock the buffer access
+   buffer_lock();
+   
+   // copy data into the current bufferslot
+   memcpy((void*)buffer_getBufferslotPointer(), (void const*)rxBuffer, frameSize);
    // set message direction
    buffer_setMessageDirection( UART_TO_ETH );
    // set message size
    buffer_setMessageSize( frameSize );
    // increment the bufferslot rx pointer
    buffer_setNextSlotRx();
-}
-
-void send( void )
-{
-   uint8_t test[] = {0xAA, 0xBB, 0xCC, 0xDD};
-   bus_uart_send( &huart2, test, 4 );
+   
+   // unlock access
+   buffer_unlock();
 }
