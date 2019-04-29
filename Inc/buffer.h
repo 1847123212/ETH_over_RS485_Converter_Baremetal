@@ -13,11 +13,11 @@ extern "C" {
 #endif
 
 // Exported defines ***********************************************************
-#define BUFFERLENGTH    1600
+#define BUFFERLENGTH    ( 1600 )
 
 // Exported types *************************************************************
 typedef struct {
-   uint8_t              buffer[BUFFERLENGTH];         // array with data and max length BUFFERLENGTH
+   uint8_t              bufferSlot[BUFFERLENGTH];     // array with data and max length BUFFERLENGTH
    message_direction_t  messageDirection;             // direction flag: either to rs485 or ethernet
    uint16_t             dataLengthInBuffer;           // length of data in the buffer - 0 means empty
 } BufferSlot;

@@ -33,13 +33,14 @@
 #include "buffer.h"
 
 // Private define *************************************************************
-#define STACKLENGTH     75
+#define STACKLENGTH     150
 
 // Private types     **********************************************************
 
 // Private variables **********************************************************
 
 // Private function prototypes ************************************************
+#pragma location=0x24000000
 static BufferSlot          buffer[STACKLENGTH];
 static BufferSlot*         bufferTxPointer;
 static BufferSlot*         bufferRxPointer;
@@ -134,12 +135,12 @@ void buffer_output( BufferSlot* output )
    if( output->messageDirection == UART_TO_ETH )
    {
       // setup the next frame pointed by the tx pointer and send it hrough the eth interface
-      eth_output( output->buffer, output->dataLengthInBuffer );
+      eth_output( output->bufferSlot, output->dataLengthInBuffer );
    }
    else if( output->messageDirection == ETH_TO_UART )
    {
       // setup the next frame pointed by the tx pointer and send it hrough the uart interface
-      uart_output( output->buffer, output->dataLengthInBuffer );
+      uart_output( output->bufferSlot, output->dataLengthInBuffer );
    }
 }
 
@@ -212,7 +213,7 @@ BufferSlot* buffer_getRxPointer( void )
 /// \return    -
 uint8_t* buffer_getBufferslotPointer( void )
 {
-   return bufferRxPointer->buffer;
+   return bufferRxPointer->bufferSlot;
 }
 
 void buffer_manager( void )
@@ -222,6 +223,8 @@ void buffer_manager( void )
    {
       // start to send data
       buffer_output( bufferTxPointer );
+      // increment pointer to set it to the next bufferslot
+      buffer_setNextSlotTx();
    }
 }
 
