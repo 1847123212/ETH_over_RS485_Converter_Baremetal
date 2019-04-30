@@ -66,22 +66,20 @@ typedef struct BUS_UART_RX_s
    uint16_t       bufferSize;                      ///< size to the pointed buffer
    uint16_t       frameSize;                       ///< size of the complete eth frame
    uint16_t       byteCounter;                     ///< size of the data field in the message                             
-} BUS_UART_RX_t;
+} UART_RX_t;
 
 // Exported functions *********************************************************
 void                 uart_init                  ( void );
-uint8_t              bus_uartInitFloating       ( void );
-void                 bus_uart_setRs485          ( uart_cmd_t setter );
-UART_HandleTypeDef*  bus_uart_getHandler        ( void );
-uint16_t             bus_uart_getSize           ( void );
-uint8_t*             bus_uart_getBufferpointer  ( void );
-uint16_t             bus_uart_getBuffersize     ( void );
-void                 bus_uart_resetRx           ( void );
-void                 bus_uart_send              ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
-void                 bus_uart_receive           ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
+void                 uart_setRs485          ( uart_cmd_t setter );
+UART_HandleTypeDef*  uart_getHandler        ( void );
+uint16_t             uart_getSize           ( void );
+uint8_t*             uart_getBufferpointer  ( void );
+uint16_t             uart_getBuffersize     ( void );
+void                 uart_send              ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
+void                 uart_receive           ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
 void                 HAL_UART_IdleLnCallback    ( UART_HandleTypeDef *huart );
-uint32_t             bus_uart_calcCRC           ( uint32_t* dataPointer, uint32_t dataLength );
-uint8_t              bus_uart_frameCheck        ( uint8_t* framePointer, uint16_t frameLength );
+uint32_t             uart_calcCRC           ( uint32_t* dataPointer, uint32_t dataLength );
+uint8_t              uart_frameCheck        ( uint8_t* framePointer, uint16_t frameLength );
 void                 uart_output                ( uint8_t* buffer, uint16_t length );
 void send( void );
 #endif // __PCU_BUS_UART_H

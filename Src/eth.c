@@ -9,7 +9,7 @@
 ///
 /// \version   0.1
 ///
-/// \date      20190124
+/// \date      20190430
 /// 
 /// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
 ///            all rights reserved.
@@ -101,11 +101,13 @@ lan8742_IOCtx_t  LAN8742_IOCtx = {ETH_PHY_IO_Init,
                                ETH_PHY_IO_ReadReg,
                                ETH_PHY_IO_GetTick};
 
-/**
-  * @brief  Configure the MPU attributes 
-  * @param  None
-  * @retval None
-  */
+
+//------------------------------------------------------------------------------
+/// \brief     Configure the MPU attributes 
+///
+/// \param     none
+///
+/// \return    none
 static void mpu_eth_config(void)
 {
   MPU_Region_InitTypeDef MPU_InitStruct;
@@ -149,11 +151,12 @@ static void mpu_eth_config(void)
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
 
-/**
-  * @brief ETH Initialization Function
-  * @param None
-  * @retval None
-  */
+//------------------------------------------------------------------------------
+/// \brief     ETH Initialization Function
+///
+/// \param     none
+///
+/// \return    none
 void eth_init( void )
 {
    uint32_t idx, duplex, speed = 0;
@@ -239,12 +242,12 @@ void eth_init( void )
    }
 }
 
-/**
-* @brief ETH MSP Initialization
-* This function configures the hardware resources used in this example
-* @param heth: ETH handle pointer
-* @retval None
-*/
+//------------------------------------------------------------------------------
+/// \brief     ETH MSP Initialization
+///
+/// \param     [in]  ETH handle pointer
+///
+/// \return    none
 void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
@@ -301,19 +304,16 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
   __HAL_RCC_ETH1RX_CLK_ENABLE();
 }
 
-/**
-* @brief ETH MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param heth: ETH handle pointer
-* @retval None
-*/
+//------------------------------------------------------------------------------
+/// \brief     ETH MSP De-Initialization 
+///
+/// \param     [in]  ETH handle pointer
+///
+/// \return    none
 void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
 {
   if(heth->Instance==ETH)
   {
-  /* USER CODE BEGIN ETH_MspDeInit 0 */
-
-  /* USER CODE END ETH_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_ETH1MAC_CLK_DISABLE();
     __HAL_RCC_ETH1TX_CLK_DISABLE();
@@ -347,10 +347,6 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
 
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_11|GPIO_PIN_12 
                           |GPIO_PIN_13);
-
-  /* USER CODE BEGIN ETH_MspDeInit 1 */
-
-  /* USER CODE END ETH_MspDeInit 1 */
   }
 }
 
@@ -384,8 +380,10 @@ void eth_output( uint8_t* buffer, uint16_t length )
    macaddress[4] = *(buffer+MACDSTADRLENGTH+4);
    macaddress[5] = *(buffer+MACDSTADRLENGTH+5);
    heth.Init.MACAddr = macaddress;
+   
    // Set MAC addr bits 32 to 47
    heth.Instance->MACA0HR = ((heth.Init.MACAddr[5] << 8) | heth.Init.MACAddr[4]);
+   
    // Set MAC addr bits 0 to 31
    heth.Instance->MACA0LR = ((heth.Init.MACAddr[3] << 24) | (heth.Init.MACAddr[2] << 16) | (heth.Init.MACAddr[1] << 8) | heth.Init.MACAddr[0]);
    
@@ -396,84 +394,87 @@ void eth_output( uint8_t* buffer, uint16_t length )
    HAL_ETH_Transmit_IT(&heth, &TxConfig);
 }
 
-/*******************************************************************************
-                       PHI IO Functions
-*******************************************************************************/
-/**
-  * @brief  Initializes the MDIO interface GPIO and clocks.
-  * @param  None
-  * @retval 0 if OK, -1 if ERROR
-  */
+//------------------------------------------------------------------------------
+/// \brief     Initializes the MDIO interface GPIO and clocks.
+///
+/// \param     none
+///
+/// \return    0 if OK -1 if Error
 int32_t ETH_PHY_IO_Init(void)
 {  
-  /* We assume that MDIO GPIO configuration is already done
-     in the ETH_MspInit() else it should be done here 
-  */
+   // We assume that MDIO GPIO configuration is already done
+   // in the ETH_MspInit() else it should be done here 
   
-  /* Configure the MDIO Clock */
-  HAL_ETH_SetMDIOClockRange(&heth);
+   // Configure the MDIO Clock
+   HAL_ETH_SetMDIOClockRange(&heth);
   
-  return 0;
+   return 0;
 }
 
-/**
-  * @brief  De-Initializes the MDIO interface .
-  * @param  None
-  * @retval 0 if OK, -1 if ERROR
-  */
+//------------------------------------------------------------------------------
+/// \brief     De-Initializes the MDIO interface .       
+///
+/// \param     none
+///
+/// \return    0 if OK -1 if Error
 int32_t ETH_PHY_IO_DeInit (void)
 {
-  return 0;
+   return 0;
 }
 
-/**
-  * @brief  Read a PHY register through the MDIO interface.
-  * @param  DevAddr: PHY port address
-  * @param  RegAddr: PHY register address
-  * @param  pRegVal: pointer to hold the register value 
-  * @retval 0 if OK -1 if Error
-  */
+//------------------------------------------------------------------------------
+/// \brief     Read a PHY register through the MDIO interface.        
+///
+/// \param     [in]  DevAddr: PHY port address
+/// \param     [in]  RegAddr: PHY register address
+/// \param     [in]  pRegVal: pointer to hold the register value 
+///
+/// \return    0 if OK -1 if Error
 int32_t ETH_PHY_IO_ReadReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t *pRegVal)
 {
-  if(HAL_ETH_ReadPHYRegister(&heth, DevAddr, RegAddr, pRegVal) != HAL_OK)
-  {
-    return -1;
-  }
+   if(HAL_ETH_ReadPHYRegister(&heth, DevAddr, RegAddr, pRegVal) != HAL_OK)
+   {
+      return -1;
+   }
   
-  return 0;
+   return 0;
 }
 
-/**
-  * @brief  Write a value to a PHY register through the MDIO interface.
-  * @param  DevAddr: PHY port address
-  * @param  RegAddr: PHY register address
-  * @param  RegVal: Value to be written 
-  * @retval 0 if OK -1 if Error
-  */
+//------------------------------------------------------------------------------
+/// \brief     Write a value to a PHY register through the MDIO interface.         
+///
+/// \param     [in]  DevAddr: PHY port address
+/// \param     [in]  RegAddr: PHY register address
+/// \param     [in]  RegVal: Value to be written 
+///
+/// \return    0 if OK -1 if Error
 int32_t ETH_PHY_IO_WriteReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t RegVal)
 {
-  if(HAL_ETH_WritePHYRegister(&heth, DevAddr, RegAddr, RegVal) != HAL_OK)
-  {
-    return -1;
-  }
+   if(HAL_ETH_WritePHYRegister(&heth, DevAddr, RegAddr, RegVal) != HAL_OK)
+   {
+      return -1;
+   }
   
-  return 0;
+   return 0;
 }
 
-/**
-  * @brief  Get the time in millisecons used for internal PHY driver process.
-  * @retval Time value
-  */
+//------------------------------------------------------------------------------
+/// \brief     Get the time in millisecons used for internal PHY driver process.                 
+///
+/// \param     none
+///
+/// \return    Time value
 int32_t ETH_PHY_IO_GetTick(void)
 {
-  return HAL_GetTick();
+   return HAL_GetTick();
 }
 
-/**
-  * @brief  Check the ETH link state and update netif accordingly.
-  * @param  argument: netif
-  * @retval None
-  */
+//------------------------------------------------------------------------------
+/// \brief     Check the ETH link state and update netif accordingly.                 
+///
+/// \param     none
+///
+/// \return    none
 void eth_link_update( void )
 {
    ETH_MACConfigTypeDef MACConf;
@@ -526,6 +527,12 @@ void eth_link_update( void )
    }
 }
 
+//------------------------------------------------------------------------------
+/// \brief     Receive complete callback                   
+///
+/// \param     [in] ETH_HandleTypeDef
+///
+/// \return    none
 void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 {
    static uint32_t framelength = 0;
@@ -558,36 +565,62 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
    HAL_ETH_BuildRxDescriptors(heth);
 }
 
+//------------------------------------------------------------------------------
+/// \brief     Transfer complete callback                   
+///
+/// \param     [in] ETH_HandleTypeDef
+///
+/// \return    none
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
 {
 }
 
+//------------------------------------------------------------------------------
+/// \brief     DMA error callback                   
+///
+/// \param     [in] ETH_HandleTypeDef
+///
+/// \return    none
 void HAL_ETH_DMAErrorCallback(ETH_HandleTypeDef *heth)
 {
-   // set the tx pointer increment flag to set it to the next bufferslot
-   //buffer_setNextSlotRx();
 }
 
+//------------------------------------------------------------------------------
+/// \brief     MAC error callback                   
+///
+/// \param     [in] ETH_HandleTypeDef
+///
+/// \return    none
 void HAL_ETH_MACErrorCallback(ETH_HandleTypeDef *heth)
 {
-   // set the tx pointer increment flag to set it to the next bufferslot
-   //buffer_setNextSlotRx();
 }
 
+//------------------------------------------------------------------------------
+/// \brief     PMT callback                   
+///
+/// \param     [in] ETH_HandleTypeDef
+///
+/// \return    none
 void HAL_ETH_PMTCallback(ETH_HandleTypeDef *heth)
 {
-   // set the tx pointer increment flag to set it to the next bufferslot
-   //buffer_setNextSlotRx();
 }
 
+//------------------------------------------------------------------------------
+/// \brief     EEE callback                   
+///
+/// \param     [in] ETH_HandleTypeDef
+///
+/// \return    none
 void HAL_ETH_EEECallback(ETH_HandleTypeDef *heth)
 {
-   // set the tx pointer increment flag to set it to the next bufferslot
-   //buffer_setNextSlotRx();
 }
 
+//------------------------------------------------------------------------------
+/// \brief     Wakeup callback                   
+///
+/// \param     [in] ETH_HandleTypeDef
+///
+/// \return    none
 void HAL_ETH_WakeUpCallback(ETH_HandleTypeDef *heth)
 {
-   // set the tx pointer increment flag to set it to the next bufferslot
-   //buffer_setNextSlotRx();
 }

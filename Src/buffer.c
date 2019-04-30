@@ -33,7 +33,7 @@
 #include "buffer.h"
 
 // Private define *************************************************************
-#define STACKLENGTH     150
+#define STACKLENGTH     ( 150 )
 
 // Private types     **********************************************************
 
@@ -113,7 +113,7 @@ uint8_t buffer_setNextSlotRx( void )
       buffer_incrRxPointer();
       bufferRxPointerCnt++;
       // reset flags on the new pointed struct
-      bufferRxPointer->dataLengthInBuffer = 0;
+      bufferRxPointer->bytesToSend = 0;
       bufferRxPointer->messageDirection = NOT_INITIALIZED;
       return 1;
    }
@@ -135,12 +135,16 @@ void buffer_output( BufferSlot* output )
    if( output->messageDirection == UART_TO_ETH )
    {
       // setup the next frame pointed by the tx pointer and send it hrough the eth interface
-      eth_output( output->bufferSlot, output->dataLengthInBuffer );
+      eth_output( output->bufferSlot, output->bytesToSend );
+      // set bytes to send to zero
+      //output->bytesToSend = 0;
    }
    else if( output->messageDirection == ETH_TO_UART )
    {
       // setup the next frame pointed by the tx pointer and send it hrough the uart interface
-      uart_output( output->bufferSlot, output->dataLengthInBuffer );
+      uart_output( output->bufferSlot, output->bytesToSend );
+      // set bytes to send to zero
+      //output->bytesToSend = 0;
    }
 }
 
@@ -185,7 +189,7 @@ void buffer_incrRxPointer( void )
 /// \return    -
 void buffer_setMessageSize( uint16_t messagesize )
 {
-   bufferRxPointer->dataLengthInBuffer = messagesize;
+   bufferRxPointer->bytesToSend = messagesize;
 }
 
 // ----------------------------------------------------------------------------
@@ -196,6 +200,15 @@ void buffer_setMessageSize( uint16_t messagesize )
 void buffer_setMessageDirection( message_direction_t direction )
 {
    bufferRxPointer->messageDirection = direction;
+}
+
+// ----------------------------------------------------------------------------
+/// \brief     Set tick value
+///
+/// \return    -
+void buffer_setTick( void )
+{
+   bufferRxPointer->tick = HAL_GetTick();
 }
 
 // ----------------------------------------------------------------------------
@@ -219,7 +232,7 @@ uint8_t* buffer_getBufferslotPointer( void )
 void buffer_manager( void )
 {
    //is there data to send?
-   if( bufferTxPointer->dataLengthInBuffer != 0 )
+   if( bufferTxPointer->bytesToSend != 0 )
    {
       // start to send data
       buffer_output( bufferTxPointer );

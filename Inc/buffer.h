@@ -19,7 +19,8 @@ extern "C" {
 typedef struct {
    uint8_t              bufferSlot[BUFFERLENGTH];     // array with data and max length BUFFERLENGTH
    message_direction_t  messageDirection;             // direction flag: either to rs485 or ethernet
-   uint16_t             dataLengthInBuffer;           // length of data in the buffer - 0 means empty
+   uint16_t             bytesToSend;                  // length of data in the buffer - 0 means empty
+   uint32_t             tick;                         // system tick
 } BufferSlot;
 
 // Exported functions *********************************************************
@@ -38,6 +39,7 @@ uint8_t*        buffer_getBufferslotPointer  ( void );
 void            buffer_lock                  ( void );
 void            buffer_unlock                ( void );
 uint8_t         buffer_getLockStatus         ( void );
+void            buffer_setTick               ( void );
 #ifdef __cplusplus
 }
 #endif

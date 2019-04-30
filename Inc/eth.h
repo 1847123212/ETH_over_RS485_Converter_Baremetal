@@ -1,7 +1,7 @@
 // ****************************************************************************
 /// \file      eth.h
 ///
-/// \brief     bus uart module
+/// \brief     eth module
 ///
 /// \details   -
 ///
@@ -9,7 +9,7 @@
 ///
 /// \version   0.1
 ///
-/// \date      20190124
+/// \date      20190430
 /// 
 /// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
 ///            all rights reserved.
