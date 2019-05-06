@@ -49,8 +49,11 @@ DMA_HandleTypeDef             hdma_usart2_tx;
 extern CRC_HandleTypeDef      hcrc;
 
 // Private function prototypes ************************************************
-static void crc_init(void);
-static void mpu_uart_config(void);
+static void      crc_init          (void);
+static void      mpu_uart_config   (void);
+static uint32_t  uart_calcCRC      ( uint32_t* dataPointer, uint32_t dataLength );
+static void      uart_send         ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
+static void      uart_receive      ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
 
 //------------------------------------------------------------------------------
 /// \brief     USART2 Initialization Function          
@@ -95,12 +98,13 @@ void uart_init( void )
    
    // USER CODE END USART2_Init 1
    huart2.Instance                           = USART2;
-   huart2.Init.BaudRate                      = 1500000;
+   huart2.Init.BaudRate                      = 5000000;
    huart2.Init.WordLength                    = UART_WORDLENGTH_8B;
    huart2.Init.StopBits                      = UART_STOPBITS_1;
    huart2.Init.Parity                        = UART_PARITY_NONE;
    huart2.Init.Mode                          = UART_MODE_TX_RX;
    huart2.Init.HwFlowCtl                     = UART_HWCONTROL_NONE;
+   //huart2.Init.OverSampling                  = UART_OVERSAMPLING_16;
    huart2.Init.OverSampling                  = UART_OVERSAMPLING_16;
    huart2.Init.OneBitSampling                = UART_ONE_BIT_SAMPLE_DISABLE;
    huart2.Init.Prescaler                     = UART_PRESCALER_DIV1;
@@ -218,42 +222,6 @@ static void crc_init(void)
    }
 }
 
-//------------------------------------------------------------------------------
-/// \brief     Function to set RTS/CTS pins on rs485 driver                  
-///
-/// \param     [in]  uart_cmd_t setter
-///
-/// \return    none
-void uart_setRs485( uart_cmd_t setter )
-{
-   if( setter != RECEIVE )
-   {
-      HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
-   }
-   else
-   {
-      HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
-   }   
-}
-
-uint8_t uart_frameCheck( uint8_t* framePointer, uint16_t frameLength )
-{  
-   // check for the preamble and start frame delimiter
-   if(( memcmp( ( void * ) framePointer, ( void * ) preAmbleSFD, PREAMBLESFDLENGTH) != 0 ))
-   {
-      return 0;
-   }
-   
-   // check the frames crc
-   if( uart_calcCRC( (uint32_t*)(framePointer+MACDSTFIELD), (uint32_t)(frameLength-PREAMBLESFDLENGTH) ) != 0 )
-   {
-      return 0;
-   }
-   
-   // both preamble/sfd and crc check has been successfull
-   return 1;
-}
-
 void uart_output( uint8_t* buffer, uint16_t length )
 {
    static     uint8_t*  crcFragment;
@@ -293,7 +261,7 @@ void uart_output( uint8_t* buffer, uint16_t length )
 ///            [in] data length
 ///
 /// \return    checksum value
-uint32_t uart_calcCRC( uint32_t* dataPointer, uint32_t dataLength )
+static uint32_t uart_calcCRC( uint32_t* dataPointer, uint32_t dataLength )
 {
    return HAL_CRC_Calculate(&hcrc, dataPointer, dataLength);
 }
@@ -304,12 +272,12 @@ uint32_t uart_calcCRC( uint32_t* dataPointer, uint32_t dataLength )
 /// \param     -
 ///
 /// \return    none
-void uart_send( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size )
+static void uart_send( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size )
 {
-   // wait until tx/rx is completed
+   // wait until uart peripheral is ready
    while(huart2->gState != HAL_UART_STATE_READY){}
-   // switch the RS485 transceiver into transmit mode
-   uart_setRs485( TRANSMIT );
+   // RS485 drive enable
+   GPIOD->BSRRL = UART_PIN_BUS_RTS|UART_PIN_BUS_CTS;
    // Clean and Invalidate data cache
    SCB_CleanInvalidateDCache();
    // start transmitting in interrupt mode
@@ -322,14 +290,16 @@ void uart_send( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size )
 /// \param     -
 ///
 /// \return    none
-void uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size )
+static void uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size )
 {
-   // wait until tx/rx is completed
+   // wait until uart peripheral is ready
    while(huart2->gState != HAL_UART_STATE_READY){}   
-   // switch the RS485 transceiver into receive mode
-   uart_setRs485( RECEIVE );
+   // RS485 drive disable
+   GPIOD->BSRRH = UART_PIN_BUS_RTS|UART_PIN_BUS_CTS;
    // enable idle line interrupt
    __HAL_UART_ENABLE_IT(huart2, UART_IT_IDLE);
+   // DEBUG
+   memset(pData, 0 , BUFFERLENGTH);
    // start receiving in interrupt mode
    HAL_UART_Receive_DMA(huart2, pData, Size);
 }
@@ -343,8 +313,7 @@ void uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size )
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart2 )
 {
    // Invalidate data cache for uart tx Buffers
-   SCB_InvalidateDCache_by_Addr((uint32_t *)txBuffer, BUFFERLENGTH);
-   
+   SCB_CleanInvalidateDCache();
    // start to receive data
    uart_receive( huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
@@ -378,8 +347,9 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 /// \return    none
 void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
 {
-   volatile uint16_t bytesLeft = __HAL_DMA_GET_COUNTER(huart2->hdmarx);
-   static uint16_t frameSize;
+   volatile uint16_t  bytesLeft = __HAL_DMA_GET_COUNTER(huart2->hdmarx);
+   volatile uint16_t  frameSize = 0;
+   volatile uint8_t*  preAmblePointer = NULL;
    
    // stop irq to reset values, disable idle line interrupt
    HAL_UART_DMAStop(huart2);
@@ -393,29 +363,49 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
    if( frameSize == 0 || frameSize > ETHSIZE+PREAMBLESFDLENGTH || frameSize < MINSIZE)
    {
       // start receiving with new flags
-      // Invalidate data cache for ETH Rx Buffers
-      SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, (BUFFERLENGTH));
+      // Invalidate data cache for UART Rx Buffers
+      SCB_CleanInvalidateDCache();
       uart_receive( huart2, rxBuffer, BUFFERLENGTH );
       return;
    }
    
-   // abort if the message doesn't have a preamble, sfd and valid fcs
-   if( uart_frameCheck( rxBuffer, frameSize ) != 1 )
+   // preamble check
+   preAmblePointer = rxBuffer;
+   for(uint8_t i=0; i<4; i++)
    {
-      // start receiving with new flags
-      // Invalidate data cache for ETH Rx Buffers
-      SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, (BUFFERLENGTH));
+      if(*(preAmblePointer) == 0xAA)
+      {
+         if( memcmp( ( void * ) preAmblePointer, ( void * ) preAmbleSFD, PREAMBLESFDLENGTH) != 0 )
+         {
+            // Invalidate data cache for UART Rx Buffers
+            SCB_CleanInvalidateDCache();
+            uart_receive( huart2, rxBuffer, BUFFERLENGTH );
+            return ;
+         }
+      }
+      else
+      {
+         preAmblePointer++;
+         frameSize--;    
+      }  
+   }
+   
+   // crc check
+   if( uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
+   {
+      // Invalidate data cache for UART Rx Buffers
+      SCB_CleanInvalidateDCache();
       uart_receive( huart2, rxBuffer, BUFFERLENGTH );
-      return;
+      return ;
    }
    
    // check if bufferslot access is ready, if not wait
    while(buffer_getLockStatus() == 1);
    // access is now ready, lock the buffer access
    buffer_lock();
-   
+
    // copy data into the current bufferslot
-   memcpy((void*)buffer_getBufferslotPointer(), (void const*)rxBuffer, frameSize);
+   memcpy((void*)buffer_getBufferslotPointer(), (void const*)preAmblePointer, frameSize);
    
    // set message direction
    buffer_setMessageDirection( UART_TO_ETH );
@@ -429,8 +419,8 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
    // unlock access
    buffer_unlock();
    
-   // Invalidate data cache for ETH Rx Buffers
-    SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, (BUFFERLENGTH));
+   // Invalidate data cache for UART Rx Buffers
+   SCB_CleanInvalidateDCache();
    
    // start to receive again
    uart_receive( huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );

@@ -29,17 +29,13 @@ uint8_t         buffer_setNextSlotTx         ( void );
 uint8_t         buffer_setNextSlotRx         ( void );
 BufferSlot*     buffer_incrTxPointer         ( void );
 void            buffer_incrRxPointer         ( void );
-BufferSlot*     buffer_getRxPointer          ( void );
 void            buffer_manager               ( void );
-void            buffer_setRxIncrReq          ( void );
-void            buffer_setTxIncrReq          ( void );
 void            buffer_setMessageSize        ( uint16_t messagesize );
 void            buffer_setMessageDirection   ( message_direction_t direction );
 uint8_t*        buffer_getBufferslotPointer  ( void );
 void            buffer_lock                  ( void );
 void            buffer_unlock                ( void );
 uint8_t         buffer_getLockStatus         ( void );
-void            buffer_setTick               ( void );
 #ifdef __cplusplus
 }
 #endif

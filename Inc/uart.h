@@ -70,16 +70,7 @@ typedef struct BUS_UART_RX_s
 
 // Exported functions *********************************************************
 void                 uart_init                  ( void );
-void                 uart_setRs485          ( uart_cmd_t setter );
-UART_HandleTypeDef*  uart_getHandler        ( void );
-uint16_t             uart_getSize           ( void );
-uint8_t*             uart_getBufferpointer  ( void );
-uint16_t             uart_getBuffersize     ( void );
-void                 uart_send              ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
-void                 uart_receive           ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
 void                 HAL_UART_IdleLnCallback    ( UART_HandleTypeDef *huart );
-uint32_t             uart_calcCRC           ( uint32_t* dataPointer, uint32_t dataLength );
-uint8_t              uart_frameCheck        ( uint8_t* framePointer, uint16_t frameLength );
 void                 uart_output                ( uint8_t* buffer, uint16_t length );
 void send( void );
 #endif // __PCU_BUS_UART_H

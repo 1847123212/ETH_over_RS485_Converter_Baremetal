@@ -55,7 +55,9 @@ static uint8_t             bufferLockFlag;
 extern UART_HandleTypeDef  huart2;
 
 // ----------------------------------------------------------------------------
-/// \brief     Stack init
+/// \brief     Buffer init
+///
+/// \param     none
 ///
 /// \return    -
 void buffer_init( void )
@@ -75,7 +77,9 @@ void buffer_init( void )
 // ----------------------------------------------------------------------------
 /// \brief     Get next buffer from queue through a pointer
 ///
-/// \return    BufferSlot
+/// \param     none
+///
+/// \return    1 success, 0 error
 uint8_t buffer_setNextSlotTx( void )
 {
    if( bufferTxPointerCnt < bufferRxPointerCnt )
@@ -95,8 +99,7 @@ uint8_t buffer_setNextSlotTx( void )
    else
    {
       // Error, in this situation in the logical view the tx pointer would be ahead 
-      // of the rx pointer, a situation that cannot be. So reset here.
-      // buffer_init();
+      // of the rx pointer, a situation like that cannot be.
       return 0;
    }
 }
@@ -104,17 +107,20 @@ uint8_t buffer_setNextSlotTx( void )
 // ----------------------------------------------------------------------------
 /// \brief     Set next bufferslot in the array of bufferlsot structs
 ///
+/// \param     none
+///
 /// \return    1 success, 0 error
 uint8_t buffer_setNextSlotRx( void )
 {
-   if( bufferRxPointerCnt < STACKLENGTH-1 )
+   if( bufferRxPointerCnt < STACKLENGTH )
    {
       // found a free slot
       buffer_incrRxPointer();
-      bufferRxPointerCnt++;
       // reset flags on the new pointed struct
       bufferRxPointer->bytesToSend = 0;
       bufferRxPointer->messageDirection = NOT_INITIALIZED;
+      // increment the pointer counter
+      bufferRxPointerCnt++;
       return 1;
    }
    else
@@ -128,6 +134,8 @@ uint8_t buffer_setNextSlotRx( void )
 // ----------------------------------------------------------------------------
 /// \brief     Send if there is something to send
 ///
+/// \param     [in] output data
+///
 /// \return    -
 void buffer_output( BufferSlot* output )
 {
@@ -137,19 +145,21 @@ void buffer_output( BufferSlot* output )
       // setup the next frame pointed by the tx pointer and send it hrough the eth interface
       eth_output( output->bufferSlot, output->bytesToSend );
       // set bytes to send to zero
-      //output->bytesToSend = 0;
+      output->bytesToSend = 0;
    }
    else if( output->messageDirection == ETH_TO_UART )
    {
       // setup the next frame pointed by the tx pointer and send it hrough the uart interface
       uart_output( output->bufferSlot, output->bytesToSend );
       // set bytes to send to zero
-      //output->bytesToSend = 0;
+      output->bytesToSend = 0;
    }
 }
 
 // ----------------------------------------------------------------------------
 /// \brief     Increment the tx pointer to the array of message buffer
+///
+/// \param     none
 ///
 /// \return    -
 BufferSlot* buffer_incrTxPointer( void )
@@ -169,6 +179,8 @@ BufferSlot* buffer_incrTxPointer( void )
 // ----------------------------------------------------------------------------
 /// \brief     Increment the rx pointer to the array of message buffer
 ///
+/// \param     none
+///
 /// \return    -
 void buffer_incrRxPointer( void )
 {
@@ -186,6 +198,8 @@ void buffer_incrRxPointer( void )
 // ----------------------------------------------------------------------------
 /// \brief     Sets message size on current pointed bufferslot
 ///
+/// \param     [in] messagesize
+///
 /// \return    -
 void buffer_setMessageSize( uint16_t messagesize )
 {
@@ -196,19 +210,12 @@ void buffer_setMessageSize( uint16_t messagesize )
 /// \brief     Sets message direction either the message needs to be forwarded to
 ///            uart or eth.
 ///
+/// \param     [in] message direction
+///
 /// \return    -
 void buffer_setMessageDirection( message_direction_t direction )
 {
    bufferRxPointer->messageDirection = direction;
-}
-
-// ----------------------------------------------------------------------------
-/// \brief     Set tick value
-///
-/// \return    -
-void buffer_setTick( void )
-{
-   bufferRxPointer->tick = HAL_GetTick();
 }
 
 // ----------------------------------------------------------------------------
@@ -223,12 +230,21 @@ BufferSlot* buffer_getRxPointer( void )
 // ----------------------------------------------------------------------------
 /// \brief     Sets message size on current pointed bufferslot
 ///
+/// \param     none
+///
 /// \return    -
 uint8_t* buffer_getBufferslotPointer( void )
 {
    return bufferRxPointer->bufferSlot;
 }
 
+// ----------------------------------------------------------------------------
+/// \brief     Buffermanager checks if there is something in the ringbuffer
+///            to send and gives the command to do so if necessary
+///
+/// \param     none
+///
+/// \return    -
 void buffer_manager( void )
 {
    //is there data to send?
@@ -244,6 +260,8 @@ void buffer_manager( void )
 // ----------------------------------------------------------------------------
 /// \brief     locks the ringbuffer access as shared source
 ///
+/// \param     none
+///
 /// \return    -
 void buffer_lock( void )
 {
@@ -253,6 +271,8 @@ void buffer_lock( void )
 // ----------------------------------------------------------------------------
 /// \brief     unlocks the ringbuffer access as shared source
 ///
+/// \param     none
+///
 /// \return    -
 void buffer_unlock( void )
 {
@@ -261,6 +281,8 @@ void buffer_unlock( void )
 
 // ----------------------------------------------------------------------------
 /// \brief     unlocks the ringbuffer access as shared source
+///
+/// \param     none
 ///
 /// \return    -
 uint8_t buffer_getLockStatus( void )
