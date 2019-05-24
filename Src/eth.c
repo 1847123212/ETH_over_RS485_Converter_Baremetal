@@ -544,17 +544,11 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
    
    // check if bufferslot access is ready, if not wait
    while(buffer_getLockStatus() == 1);
+   
    // access is now ready, lock the buffer access
    buffer_lock();
    
-   // copy data into the current bufferslot
-   memcpy((void*)buffer_getBufferslotPointer(), (void const*)RxBuff.buffer, framelength);
-   // set message direction
-   buffer_setMessageDirection( ETH_TO_UART );
-   // set message size
-   buffer_setMessageSize( framelength );
-   // increment the bufferslot rx pointer
-   buffer_setNextSlotRx();
+   buffer_insertData( RxBuff.buffer, framelength, ETH_TO_UART );
    
    // unlock access
    buffer_unlock();

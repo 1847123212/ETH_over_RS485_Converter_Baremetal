@@ -25,17 +25,12 @@ typedef struct {
 
 // Exported functions *********************************************************
 void            buffer_init                  ( void );
-uint8_t         buffer_setNextSlotTx         ( void );
-uint8_t         buffer_setNextSlotRx         ( void );
-BufferSlot*     buffer_incrTxPointer         ( void );
-void            buffer_incrRxPointer         ( void );
 void            buffer_manager               ( void );
-void            buffer_setMessageSize        ( uint16_t messagesize );
-void            buffer_setMessageDirection   ( message_direction_t direction );
-uint8_t*        buffer_getBufferslotPointer  ( void );
 void            buffer_lock                  ( void );
 void            buffer_unlock                ( void );
 uint8_t         buffer_getLockStatus         ( void );
+void            buffer_insertData            ( uint8_t* data, uint16_t dataLength, message_direction_t messageDirection );
+void            buffer_ledTimerCallback      ( void );
 #ifdef __cplusplus
 }
 #endif

@@ -32,7 +32,8 @@
 #include "buffer.h"
 #include "eth.h"
 #include "uart.h"
-#include "string.h"
+#include <string.h>
+#include <stdlib.h>
 
 /* Private includes ----------------------------------------------------------*/
 
@@ -43,7 +44,9 @@
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
-CRC_HandleTypeDef hcrc;
+
+/* Extern variables ----------------------------------------------------------*/
+extern TIM_HandleTypeDef LedTimHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -155,6 +158,27 @@ static void CPU_CACHE_Enable(void)
 
   /* Enable D-Cache */
   SCB_EnableDCache();
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+   if( htim->Instance == TIM2)   // reset collision led
+   {
+      uart_ledTimerCallback();
+   }
+   if( htim->Instance == TIM3)   // bus access timer
+   {
+      uart_setUartAccessFlag();
+   }
+   if( htim->Instance == TIM4)   // bus access timer
+   {
+      buffer_ledTimerCallback();
+   }
 }
 
 /**

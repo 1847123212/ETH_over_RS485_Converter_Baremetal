@@ -30,6 +30,7 @@
 #include "main.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "buffer.h"
 #include "uart.h"
 
@@ -42,11 +43,15 @@ ALIGN_32BYTES(uint8_t         rxBuffer[BUFFERLENGTH]);
 #pragma location=0x2403B700
 ALIGN_32BYTES(uint8_t         txBuffer[BUFFERLENGTH]);
 
+uint8_t              uartBusAccessFlag;
+TIM_HandleTypeDef    LedTimHandle;
+TIM_HandleTypeDef    BusTimHandle;
+
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
 DMA_HandleTypeDef             hdma_usart2_rx;
 DMA_HandleTypeDef             hdma_usart2_tx;
-extern CRC_HandleTypeDef      hcrc;
+CRC_HandleTypeDef             hcrc;
 
 // Private function prototypes ************************************************
 static void      crc_init          (void);
@@ -54,6 +59,11 @@ static void      mpu_uart_config   (void);
 static uint32_t  uart_calcCRC      ( uint32_t* dataPointer, uint32_t dataLength );
 static void      uart_send         ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
 static void      uart_receive      ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
+static void      led_timer_init    ( void );
+static void      bus_timer_init    ( void );
+static void      led_gpio_init     ( void );
+static void      setRandomWait     ( void );
+static void      resetRandomWait   ( void );
 
 //------------------------------------------------------------------------------
 /// \brief     USART2 Initialization Function          
@@ -70,6 +80,7 @@ void uart_init( void )
    __HAL_RCC_DMA1_CLK_ENABLE();
    __HAL_RCC_USART2_CLK_ENABLE();
    __HAL_RCC_GPIOD_CLK_ENABLE();
+  
    
    // setup hardware crc
    crc_init();
@@ -77,6 +88,15 @@ void uart_init( void )
    // set mpu for cache reading and writing
    mpu_uart_config();
 
+   // LED for Collision indication
+   led_gpio_init();
+   
+   // Timer for Collision LED Configuration
+   led_timer_init();
+   
+   // Timer for bus access
+   bus_timer_init();
+   
    // RS485 CTS RTS GPIO Configuration
    // PD3     ------> CTS 
    // PD4     ------> RTS 
@@ -165,6 +185,8 @@ void uart_init( void )
    
    // set preamble in the tx buffer
    memcpy(txBuffer, preAmbleSFD, PREAMBLESFDLENGTH);
+   
+   uartBusAccessFlag = 1;
    
    // start to receive uart(rs485)
    uart_receive( &huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
@@ -276,6 +298,11 @@ static void uart_send( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size
 {
    // wait until uart peripheral is ready
    while(huart2->gState != HAL_UART_STATE_READY){}
+   // wait a random short time to avoid possible collisions at the beginning
+   uartBusAccessFlag = 0;
+   setRandomWait();
+   while(uartBusAccessFlag!=1);
+   resetRandomWait();
    // RS485 drive enable
    GPIOD->BSRRL = UART_PIN_BUS_RTS|UART_PIN_BUS_CTS;
    // Clean and Invalidate data cache
@@ -349,7 +376,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
 {
    volatile uint16_t  bytesLeft = __HAL_DMA_GET_COUNTER(huart2->hdmarx);
    volatile uint16_t  frameSize = 0;
-   volatile uint8_t*  preAmblePointer = NULL;
+   static   uint8_t*  preAmblePointer = NULL;
    
    // stop irq to reset values, disable idle line interrupt
    HAL_UART_DMAStop(huart2);
@@ -393,6 +420,10 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
    // crc check
    if( uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
    {
+      // set collision led
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+      // start timer to reset collision led
+      HAL_TIM_Base_Start_IT(&LedTimHandle);
       // Invalidate data cache for UART Rx Buffers
       SCB_CleanInvalidateDCache();
       uart_receive( huart2, rxBuffer, BUFFERLENGTH );
@@ -401,20 +432,11 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
    
    // check if bufferslot access is ready, if not wait
    while(buffer_getLockStatus() == 1);
+   
    // access is now ready, lock the buffer access
    buffer_lock();
 
-   // copy data into the current bufferslot
-   memcpy((void*)buffer_getBufferslotPointer(), (void const*)preAmblePointer, frameSize);
-   
-   // set message direction
-   buffer_setMessageDirection( UART_TO_ETH );
-
-   // set message size
-   buffer_setMessageSize( frameSize );
-   
-   // increment the bufferslot rx pointer
-   buffer_setNextSlotRx();
+   buffer_insertData( preAmblePointer, frameSize, UART_TO_ETH );
    
    // unlock access
    buffer_unlock();
@@ -424,4 +446,145 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart2 )
    
    // start to receive again
    uart_receive( huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
+}
+
+//------------------------------------------------------------------------------
+/// \brief     set uart bus access flag           
+///
+/// \param     none
+///
+/// \return    none
+void uart_setUartAccessFlag( void )
+{
+   uartBusAccessFlag = 1;
+}
+
+//------------------------------------------------------------------------------
+/// \brief     reset uart bus access flag           
+///
+/// \param     none
+///
+/// \return    none
+void uart_resetUartAccessFlag( void )
+{
+   uartBusAccessFlag = 0;
+}
+
+//------------------------------------------------------------------------------
+/// \brief     led timer initialisation   
+///
+/// \param     none
+///
+/// \return    none
+static void led_timer_init( void )
+{
+  // Compute the prescaler value to have TIMx counter clock equal to 1000 Hz = 1 ms
+  uint32_t uwPrescalerValue = (uint32_t)(SystemCoreClock / (2*1000)) - 1;
+
+  // clock
+  __HAL_RCC_TIM2_CLK_ENABLE();
+  
+  // configuration
+  LedTimHandle.Instance = TIM2;
+  LedTimHandle.Init.Period            = 100-1;
+  LedTimHandle.Init.Prescaler         = uwPrescalerValue;
+  LedTimHandle.Init.ClockDivision     = 0;
+  LedTimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
+  LedTimHandle.Init.RepetitionCounter = 0;
+  HAL_TIM_Base_Init(&LedTimHandle);
+
+  // Set the TIM2 priority
+  HAL_NVIC_SetPriority(TIM2_IRQn, 3, 0);
+
+  // Enable the TIMx global Interrupt
+  HAL_NVIC_EnableIRQ(TIM2_IRQn);
+}
+
+//------------------------------------------------------------------------------
+/// \brief     bus access timer initialisation   
+///
+/// \param     none
+///
+/// \return    none
+static void bus_timer_init( void )
+{
+  // Compute the prescaler value to have TIMx counter clock equal to 1000000 Hz = 1 us
+  uint32_t uwPrescalerValue = (uint32_t)(SystemCoreClock / (2*1000000)) - 1;
+
+  // clock
+  __HAL_RCC_TIM3_CLK_ENABLE();
+  
+  // configuration
+  BusTimHandle.Instance               = TIM3;
+  BusTimHandle.Init.Period            = 0;
+  BusTimHandle.Init.Prescaler         = uwPrescalerValue;
+  BusTimHandle.Init.ClockDivision     = 0;
+  BusTimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
+  BusTimHandle.Init.RepetitionCounter = 0;
+  
+  HAL_TIM_Base_Init(&BusTimHandle);
+
+  // Set the TIM3 priority
+  HAL_NVIC_SetPriority(TIM3_IRQn, 3, 0);
+
+  // Enable the TIMx global Interrupt
+  HAL_NVIC_EnableIRQ(TIM3_IRQn);
+}
+
+//------------------------------------------------------------------------------
+/// \brief     led gpio initialisation   
+///
+/// \param     none
+///
+/// \return    none
+static void led_gpio_init( void )
+{
+   // variables
+   GPIO_InitTypeDef GPIO_InitStruct;
+   
+   // clock
+   __HAL_RCC_GPIOB_CLK_ENABLE();
+   
+   // gpio configuration
+   GPIO_InitStruct.Pin                       = GPIO_PIN_14;
+   GPIO_InitStruct.Mode                      = GPIO_MODE_OUTPUT_PP;
+   GPIO_InitStruct.Speed                     = GPIO_SPEED_FREQ_LOW;
+   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
+//------------------------------------------------------------------------------
+/// \brief     timer callback function
+///
+/// \param     none
+///
+/// \return    none
+void uart_ledTimerCallback( void )
+{
+   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+   HAL_TIM_Base_Stop_IT(&LedTimHandle);
+}
+
+//------------------------------------------------------------------------------
+/// \brief     Sets random timer period
+///
+/// \param     none
+///
+/// \return    none
+static void setRandomWait( void )
+{
+   /* Set the Autoreload value */
+  TIM3->ARR = (uint32_t)(rand() % 100) + 10;
+  /* start the timer */
+  HAL_TIM_Base_Start_IT(&BusTimHandle);
+}
+
+//------------------------------------------------------------------------------
+/// \brief     Stops the timer
+///
+/// \param     none
+///
+/// \return    none
+static void resetRandomWait( void )
+{
+   HAL_TIM_Base_Stop_IT(&BusTimHandle);
 }

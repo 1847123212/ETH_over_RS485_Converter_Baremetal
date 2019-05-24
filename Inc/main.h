@@ -63,7 +63,8 @@ typedef enum
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
-
+void setRandomWait( void );
+void resetRandomWait( void );
 /* Exported defines ----------------------------------------------------------*/
 
 #ifdef __cplusplus

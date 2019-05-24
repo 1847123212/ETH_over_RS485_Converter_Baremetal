@@ -72,5 +72,8 @@ typedef struct BUS_UART_RX_s
 void                 uart_init                  ( void );
 void                 HAL_UART_IdleLnCallback    ( UART_HandleTypeDef *huart );
 void                 uart_output                ( uint8_t* buffer, uint16_t length );
+void                 uart_setUartAccessFlag     ( void );
+void                 uart_resetUartAccessFlag   ( void );
+void                 uart_ledTimerCallback      ( void );
 void send( void );
 #endif // __PCU_BUS_UART_H

@@ -61,6 +61,9 @@ extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart2;
 extern ETH_HandleTypeDef heth;
+extern TIM_HandleTypeDef BusTimHandle;
+extern TIM_HandleTypeDef LedTimHandle;
+extern TIM_HandleTypeDef LedMallocTimHandle;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -256,6 +259,36 @@ void USART2_IRQHandler(void)
 void ETH_IRQHandler(void)
 {
   HAL_ETH_IRQHandler(&heth);
+}
+
+/**
+  * @brief  This function handles timer interrupt request.
+  * @param  None
+  * @retval None
+  */
+void TIM2_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&LedTimHandle);
+}
+
+/**
+  * @brief  This function handles timer interrupt request.
+  * @param  None
+  * @retval None
+  */
+void TIM3_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&BusTimHandle);
+}
+
+/**
+  * @brief  This function handles timer interrupt request.
+  * @param  None
+  * @retval None
+  */
+void TIM4_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&LedMallocTimHandle);
 }
 
 /* USER CODE BEGIN 1 */
