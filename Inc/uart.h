@@ -75,5 +75,9 @@ void                 uart_output                ( uint8_t* buffer, uint16_t leng
 void                 uart_setUartAccessFlag     ( void );
 void                 uart_resetUartAccessFlag   ( void );
 void                 uart_ledTimerCallback      ( void );
+void                 uart_startBytetimeout      ( void );
+void                 uart_bytetimeoutTimerCallback( void );
+void                 uart_customCallback        ( void );
+void                 uart_resetBytetimeout      ( void );
 void send( void );
 #endif // __PCU_BUS_UART_H

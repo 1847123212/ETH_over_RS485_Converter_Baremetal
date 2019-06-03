@@ -29,7 +29,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "buffer.h"
+#include "list.h"
 #include "eth.h"
 #include "uart.h"
 #include <string.h>
@@ -46,7 +46,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* Extern variables ----------------------------------------------------------*/
-extern TIM_HandleTypeDef LedTimHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -68,19 +67,19 @@ int main(void)
    SystemClock_Config();
 
    // init buffer and start to reveive
-   buffer_init();
-   
-   // initialize th ethernet interface
-   eth_init();
+   list_init();
    
    // initialize the uart with rs485 transceiver
    uart_init();
+   
+   // initialize th ethernet interface
+   eth_init();
   
    // Infinite loop
    while (1)
    {
       // wait for a new slot to be send
-      buffer_manager();
+      list_manager();
    }
 }
 
@@ -112,7 +111,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 50;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
@@ -167,17 +166,21 @@ static void CPU_CACHE_Enable(void)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-   if( htim->Instance == TIM2)   // reset collision led
+   if( htim->Instance == TIM2 )   // collision led timer callback
    {
       uart_ledTimerCallback();
    }
-   if( htim->Instance == TIM3)   // bus access timer
+   if( htim->Instance == TIM3 )   // bus access timer flag setter
    {
       uart_setUartAccessFlag();
    }
-   if( htim->Instance == TIM4)   // bus access timer
+   if( htim->Instance == TIM4 )   // malloc fail led timer callback
    {
-      buffer_ledTimerCallback();
+      list_ledTimerCallback();
+   }
+   if( htim->Instance == TIM5 )   // bytetimeout to indicate that the bus is idle
+   {
+      uart_bytetimeoutTimerCallback();
    }
 }
 

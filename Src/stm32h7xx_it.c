@@ -64,6 +64,7 @@ extern ETH_HandleTypeDef heth;
 extern TIM_HandleTypeDef BusTimHandle;
 extern TIM_HandleTypeDef LedTimHandle;
 extern TIM_HandleTypeDef LedMallocTimHandle;
+extern TIM_HandleTypeDef BTimeoutTimHandle;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -246,6 +247,7 @@ void USART2_IRQHandler(void)
          HAL_UART_IdleLnCallback(&huart2);
       }
    }else{
+      uart_customCallback();
       // excecute HAL_UART_IRQHandler as usual
       HAL_UART_IRQHandler(&huart2);
    }
@@ -289,6 +291,16 @@ void TIM3_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&LedMallocTimHandle);
+}
+
+/**
+  * @brief  This function handles timer interrupt request.
+  * @param  None
+  * @retval None
+  */
+void TIM5_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&BTimeoutTimHandle);
 }
 
 /* USER CODE BEGIN 1 */

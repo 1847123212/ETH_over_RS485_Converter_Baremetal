@@ -16,11 +16,11 @@
         <LeaveTargetRunning>_ 0</LeaveTargetRunning>
         <stlinkResetStyle>0</stlinkResetStyle>
         <stlinkResetStrategy>2</stlinkResetStrategy>
-        <stlinkserialNo>43244207</stlinkserialNo>
-        <stlinkfoundProbes>43244207:FFFFFFFF:</stlinkfoundProbes>
+        <stlinkserialNo>43243335</stlinkserialNo>
+        <stlinkfoundProbes>09241143:43243335:</stlinkfoundProbes>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>2209779927</Checksum>
+        <Checksum>4015365223</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -123,14 +123,21 @@
         <Bp4>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp4>
         <Bp5>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp5>
         <Bp6>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp6>
-        <Bp7>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2634.23" 0 0 1 "" 0 "" 0</Bp7>
-        <Bp8>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1619.7" 0 0 1 "" 0 "" 0</Bp8>
-        <Bp9>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1653.13" 0 0 1 "" 0 "" 0</Bp9>
-        <Bp10>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2634.23" 0 0 1 "" 0 "" 0</Bp10>
-        <Bp11>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2815.7" 0 0 1 "" 0 "" 0</Bp11>
-        <Bp12>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2782.3" 0 0 1 "" 0 "" 0</Bp12>
-        <Bp13>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.0.1" 0 0 1 "" 0 "" 0</Bp13>
-        <Count>14</Count>
+        <Bp7>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1619.7" 0 0 1 "" 0 "" 0</Bp7>
+        <Bp8>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2815.7" 0 0 1 "" 0 "" 0</Bp8>
+        <Bp9>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2782.3" 0 0 1 "" 0 "" 0</Bp9>
+        <Bp10>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.0.1" 0 0 1 "" 0 "" 0</Bp10>
+        <Bp11>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp11>
+        <Bp12>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp12>
+        <Bp13>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1678.9" 0 0 1 "" 0 "" 0</Bp13>
+        <Bp14>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2638.3" 0 0 1 "" 0 "" 0</Bp14>
+        <Bp15>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2622.5" 0 0 1 "" 0 "" 0</Bp15>
+        <Bp16>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1671.11" 0 0 1 "" 0 "" 0</Bp16>
+        <Bp17>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.185.1" 0 0 1 "" 0 "" 0</Bp17>
+        <Bp18>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.509.7" 0 0 1 "" 0 "" 0</Bp18>
+        <Bp19>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.597.4" 0 0 1 "" 0 "" 0</Bp19>
+        <Bp20>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.581.4" 0 0 1 "" 0 "" 0</Bp20>
+        <Count>21</Count>
     </Breakpoints2>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>
