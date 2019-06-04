@@ -69,12 +69,12 @@ int main(void)
    // init buffer and start to reveive
    list_init();
    
-   // initialize the uart with rs485 transceiver
-   uart_init();
-   
    // initialize th ethernet interface
    eth_init();
-  
+   
+   // initialize the uart with rs485 transceiver
+   uart_init();
+
    // Infinite loop
    while (1)
    {

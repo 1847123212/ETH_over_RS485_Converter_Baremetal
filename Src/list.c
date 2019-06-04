@@ -49,7 +49,8 @@ typedef struct node {
 static node_t              *head;
 static node_t              *oldhead;
 static uint32_t            listLength;
-static int32_t            listSize;
+static int32_t             listSize;
+static uint32_t            listLimit;
 static uint32_t            mallocFailCounter;
 static uint8_t             listLockFlag;
 
@@ -85,6 +86,7 @@ void list_init( void )
    
    // init list length to 0
    listLength = 0;
+   listLimit = 200;
    
    // reset the source lock flag
    listLockFlag = 0;
@@ -103,6 +105,21 @@ void list_init( void )
 /// \return    -
 void list_manager( void )
 {
+   /*
+   if(listLength < listLimit)
+   {
+      return;
+   }
+   else
+   {
+      listLimit = 0;
+      if(listLength == 0)
+      {
+         listLimit = 200;
+      }
+   }
+*/
+   
    node_t *next = head->next;
    
    // check if there is data ready to send on the header node through its next member
@@ -113,8 +130,10 @@ void list_manager( void )
       head = next;
       
       // release the old head
+      __disable_irq();
       free(oldhead->data);
       free(oldhead);
+      __enable_irq();
        
       // if toETHFlag is one, it means that the current pointed message is dedicadet for the eth interface
       if( head->messageDirection == UART_TO_ETH )
@@ -176,37 +195,27 @@ uint8_t list_getLockStatus( void )
 /// \return    -
 void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t messageDirection )
 {
+   // disable all interrupts, as malloc is used in an isr
+   __disable_irq();
+   
+   // variables
    node_t *newNode   = malloc(sizeof(node_t));
    static node_t *tmp;       
    static node_t *tailNode;
    
-   // check if list is not accessed by an another source
-   while(list_getLockStatus() == 1);
-   
-   // access is now ready, lock the list access
-   list_lock();
-   
-   tmp = head;
-   
    if( newNode != NULL )
    {
       newNode->data = malloc(dataLength*sizeof(uint8_t));
-      
-      listSize += sizeof(newNode);
    }
    else
    {
-      // set collision led
-      //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
-      // start timer to reset collision led
-      //HAL_TIM_Base_Start_IT(&LedMallocTimHandle);
+      // increment malloc fail counter
       mallocFailCounter++;
-      // unlock access
-      list_unlock();
+      // enable all interrupts again
+      __enable_irq();
       return;
    }
    
-
    // check if allocation was successfull
    if( newNode->data != NULL )
    {
@@ -215,41 +224,35 @@ void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t me
       newNode->dataLength        = dataLength;
       newNode->messageDirection  = messageDirection;
       newNode->next              = NULL;
-      
-      listSize += dataLength*sizeof(uint8_t);
    }
    else
    {
-      // set collision led
-      HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
-      // start timer to reset collision led
-      HAL_TIM_Base_Start_IT(&LedMallocTimHandle);
       // increment malloc fail counter
       mallocFailCounter++;
-      // free allreay allocated data
+      // free allready allocated data
       free(newNode);
-      // unlock access
-      list_unlock();
+      // enable all interrupts again
+      __enable_irq();
       return;
    }
    
    // get the tail of the list
+   tmp = head;
    do 
    {
       tailNode = tmp;
       tmp = tmp->next;
    } 
-   while (tmp); // tailNode has now the tail of the list where the member next is null and tmp equals null
+   while(tmp); // tailNode has now the tail of the list where the member next is null and tmp equals null
    
    // tail node needs address of the new tailnode "newNode"
-   // old_node
    tailNode->next = newNode;
-
+   
    // increment list length
    listLength++;
    
-   // unlock access
-   list_unlock();
+   // enable all interrupts again
+   __enable_irq();
 }
 
 //------------------------------------------------------------------------------
@@ -286,7 +289,7 @@ static void led_timer_init( void )
 }
 
 //------------------------------------------------------------------------------
-/// \brief     led gpio initialisation   
+/// \brief     led gpio initialisation for firmware operation led  
 ///
 /// \param     none
 ///
@@ -307,7 +310,7 @@ static void led_gpio_init( void )
 }
 
 //------------------------------------------------------------------------------
-/// \brief     Malloc fail led callback
+/// \brief     firmware operation led callback
 ///
 /// \param     none
 ///
@@ -315,5 +318,4 @@ static void led_gpio_init( void )
 void list_ledTimerCallback( void )
 {
    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-  //HAL_TIM_Base_Stop_IT(&LedMallocTimHandle);
 }

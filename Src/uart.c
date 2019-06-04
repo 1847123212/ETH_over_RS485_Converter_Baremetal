@@ -41,19 +41,13 @@
 
 // Private variables **********************************************************
 static const uint8_t          preAmbleSFD[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAB};
-#pragma location=0x2403B000
-ALIGN_32BYTES(uint8_t         rxBuffer[BUFFERLENGTH]);
-#pragma location=0x2403B700
-ALIGN_32BYTES(uint8_t         txBuffer[BUFFERLENGTH]);
+static uint8_t                rxBuffer[BUFFERLENGTH];
+static uint8_t                txBuffer[BUFFERLENGTH];
 
-uint8_t                       uartBusAccessFlag;
-uint8_t                       uartBusActiveFlag;
-uint8_t                       txActiveFlag = 0;
-uint8_t                       rxActiveFlag = 0;
-TIM_HandleTypeDef             LedTimHandle;
-TIM_HandleTypeDef             BusTimHandle;
-TIM_HandleTypeDef             BTimeoutTimHandle;
-uint32_t                      colCounter = 0;
+static uint8_t                uartBusAccessFlag;
+static uint8_t                uartBusActiveFlag;
+volatile uint8_t              txActiveFlag = 0;
+static uint32_t               colCounter = 0;
 
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
@@ -61,6 +55,9 @@ DMA_HandleTypeDef             hdma_usart2_rx;
 DMA_HandleTypeDef             hdma_usart2_tx;
 CRC_HandleTypeDef             hcrc;
 extern ETH_HandleTypeDef      heth;
+TIM_HandleTypeDef             LedTimHandle;
+TIM_HandleTypeDef             BusTimHandle;
+TIM_HandleTypeDef             BTimeoutTimHandle;
 
 // Private function prototypes ************************************************
 static void      crc_init          (void);
@@ -96,7 +93,7 @@ void uart_init( void )
    crc_init();
    
    // set mpu for cache reading and writing
-   mpu_uart_config();
+   //mpu_uart_config();
 
    // LED for Collision indication
    led_gpio_init();
@@ -199,8 +196,10 @@ void uart_init( void )
    // set preamble in the tx buffer
    memcpy(txBuffer, preAmbleSFD, PREAMBLESFDLENGTH);
    
+   // set flags
    uartBusAccessFlag = 1;
    uartBusActiveFlag = 0;
+   txActiveFlag = 0;
    
    // start to receive uart(rs485)
    uart_receive( &huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
@@ -227,7 +226,7 @@ static void mpu_uart_config(void)
    MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
    MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
    MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-   MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+   MPU_InitStruct.Number = MPU_REGION_NUMBER2;
    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
    MPU_InitStruct.SubRegionDisable = 0x00;
    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
@@ -263,7 +262,8 @@ void uart_output( uint8_t* buffer, uint16_t length )
    static     uint32_t  crc32;
    
    // as long as the buffer is accessed by the peripheral, wait here!
-   while((&huart2)->gState != HAL_UART_STATE_READY);
+   while(txActiveFlag != 0);
+   //while((&huart2)->gState != HAL_UART_STATE_READY);
        
    // copy data into tx output buffer
    memcpy( &txBuffer[MACDSTFIELD], buffer, length );
@@ -309,13 +309,17 @@ static uint32_t uart_calcCRC( uint32_t* dataPointer, uint32_t dataLength )
 /// \return    none
 static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size )
 {
-   volatile uint8_t goFlag = 0;
+   // generate variable allready at the beginning of program run
+   static uint8_t goFlag; 
+   
+   // reset go flag
+   goFlag = 0;
 
    // wait for the bus to become idle and send then data
    while(goFlag != 1)
    {
       // wait until uart peripheral is ready and line is idle
-      while(huart->gState != HAL_UART_STATE_READY && uartBusActiveFlag != 1){}
+      while(uartBusActiveFlag != 0){}
       // wait a random short time to avoid possible collisions at the beginning
       uartBusAccessFlag = 0;
       setRandomWait();
@@ -329,10 +333,11 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    }
    // RS485 drive enable -> write to the bus (listen not anymore possible at this moment)
    GPIOD->BSRRL = UART_PIN_BUS_RTS|UART_PIN_BUS_CTS;
+   // set tx active flag (will be reseted in the tx complete isr)
    txActiveFlag = 1;
-   rxActiveFlag = 0;
    // Clean data cache
-   SCB_CleanDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
+   //SCB_CleanDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
+   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
    // start transmitting in interrupt mode
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
@@ -347,18 +352,17 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
 /// \return    none
 static void uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t Size )
 {
-   // set buffer to 0
-   //memset(&rxBuffer, 0, BUFFERLENGTH);
    // wait until uart peripheral is ready
-   while(txActiveFlag != 0){}  
+   //while(txActiveFlag != 0){}  
+   while(huart2->gState != HAL_UART_STATE_READY);
    // RS485 set to listening
    GPIOD->BSRRH = UART_PIN_BUS_RTS|UART_PIN_BUS_CTS;
-   rxActiveFlag = 1;
    // enable idle line and rx interrupt
    __HAL_UART_ENABLE_IT(huart2, UART_IT_IDLE);
    __HAL_UART_ENABLE_IT(huart2, UART_IT_RXNE);
    // Clean and Invalidate data cache
-   SCB_CleanDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
+   //SCB_CleanDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
+   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
    // start receiving in interrupt mode
    HAL_UART_Receive_DMA(huart2, pData, Size);
 }
@@ -372,7 +376,8 @@ static void uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t S
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
    // invalidate data cache (deletes data in the cache itself)
-   SCB_InvalidateDCache_by_Addr((uint32_t *)txBuffer, BUFFERLENGTH);
+   //SCB_InvalidateDCache_by_Addr((uint32_t *)txBuffer, BUFFERLENGTH);
+   // reset tx active flag
    txActiveFlag = 0;
    // start to receive data
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
@@ -394,7 +399,7 @@ void HAL_UART_RxCpltCallback( UART_HandleTypeDef *huart )
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
    
    // invalidate data cache (deletes data in the cache itself)
-   SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, BUFFERLENGTH);
+   //SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, BUFFERLENGTH);
    
    // start receive irq
    uart_receive( huart, rxBuffer, BUFFERLENGTH );
@@ -410,6 +415,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
+   
    // reset errors
    if (huart->Instance->ISR & USART_ISR_ORE) // Overrun Error
    {
@@ -428,14 +434,18 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);
    
-   // invalidate data cache (deletes data in the cache itself)
-   SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, BUFFERLENGTH);
-   SCB_InvalidateDCache_by_Addr((uint32_t *)txBuffer, BUFFERLENGTH);
-   
    // finish tx state
    if( txActiveFlag == 1 )
    {
+      // reset tx active flag
       txActiveFlag = 0;
+      // invalidate data cache (deletes data in the cache itself)
+      //SCB_InvalidateDCache_by_Addr((uint32_t *)txBuffer, BUFFERLENGTH);
+   }
+   else
+   {
+      // invalidate data cache (deletes data in the cache itself)
+      //SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, BUFFERLENGTH);
    }
    
    // start receive irq
@@ -462,10 +472,12 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    HAL_UART_Abort_IT(huart);
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
+   
+   // reset the bus active flag
    //uartBusActiveFlag = 0;
    
    // invalidate data cache (deletes data in the cache itself)
-   SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, BUFFERLENGTH);
+   //SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, BUFFERLENGTH);
    
    // get message length
    frameSize = BUFFERLENGTH - bytesLeft;
@@ -499,6 +511,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
    
    // crc check
+   /*
    if( uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
    {
       // set collision led
@@ -510,6 +523,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
       colCounter++;
       return ;
    }
+*/
 
    // create a new node in the list, with the received data
    list_insertData( preAmblePointer, frameSize, UART_TO_ETH );
