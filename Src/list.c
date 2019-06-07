@@ -212,7 +212,7 @@ void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t me
       // increment malloc fail counter
       mallocFailCounter++;
       // enable all interrupts again
-      __enable_irq();
+      //__enable_irq();
       return;
    }
    
@@ -232,7 +232,7 @@ void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t me
       // free allready allocated data
       free(newNode);
       // enable all interrupts again
-      __enable_irq();
+      //__enable_irq();
       return;
    }
    

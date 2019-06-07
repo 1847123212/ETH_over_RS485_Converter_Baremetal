@@ -306,7 +306,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
   HAL_GPIO_Init(GPIOG, &GPIO_InitStructure);	
   
   /* Enable the Ethernet global Interrupt */
-  HAL_NVIC_SetPriority(ETH_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(ETH_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(ETH_IRQn);
   
   /* Enable Ethernet clocks */
@@ -369,11 +369,15 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
 /// \return    none
 void eth_output( uint8_t* buffer, uint16_t length )
 {   
-   ETH_BufferTypeDef Txbuffer;
+   ETH_BufferTypeDef       Txbuffer;
+   ETH_DMADescTypeDef      *dmatxdesc = (ETH_DMADescTypeDef*)heth.TxDescList.CurTxDesc;
    
    // as long as the buffer is accessed by the peripheral, wait here!
    //while(txActiveFlagETH != 0);
    while(heth.gState != HAL_ETH_STATE_READY);
+   
+   // check if eth buffer is owned by dma or cpu
+   //while(READ_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCWBF_OWN) == ETH_DMATXNDESCWBF_OWN);
    
    length = length-PREAMBLESFDLENGTH-CRC32LENGTH;
    buffer = buffer+PREAMBLESFDLENGTH;
@@ -409,7 +413,7 @@ void eth_output( uint8_t* buffer, uint16_t length )
    //txActiveFlagETH = 1;
    
    // send the data
-   HAL_ETH_Transmit_IT(&heth, &TxConfig);
+   HAL_ETH_Transmit(&heth, &TxConfig,0);
 }
 
 //------------------------------------------------------------------------------
@@ -556,6 +560,8 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
    uint32_t framelength = 0;
    ETH_BufferTypeDef RxBuff;
    
+   //__disable_irq();
+   
    //HAL_ETH_IsRxDataAvailable(heth)
 
    // invalidate data cache (deletes data in the cache itself)
@@ -567,6 +573,8 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
    
    // create a new node in the list, with the received data
    list_insertData( RxBuff.buffer, framelength, ETH_TO_UART );
+   
+   //__enable_irq();
 
    // set the RX descriptor for next receive
    HAL_ETH_BuildRxDescriptors(heth);
@@ -584,6 +592,9 @@ void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
    //SCB_InvalidateDCache_by_Addr((uint32_t *)Tx_Buff, ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE);
    // reset tx active flag
    //txActiveFlagETH = 0;
+   //volatile ETH_TxDescListTypeDef *dmatxdesclist = &heth->TxDescList; 
+   //volatile uint32_t descidx = dmatxdesclist->CurTxDesc;
+   //CLEAR_BIT(descidx, ETH_DMATXNDESCRF_OWN);
 }
 
 //------------------------------------------------------------------------------

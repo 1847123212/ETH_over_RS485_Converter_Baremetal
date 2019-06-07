@@ -464,6 +464,8 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    static uint16_t    frameSize;
    static uint8_t*    preAmblePointer;
    
+   //__disable_irq();
+   
    // set variables
    bytesLeft = __HAL_DMA_GET_COUNTER(huart->hdmarx);
    
@@ -487,6 +489,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    {
       // start receive irq
       uart_receive( huart, rxBuffer, BUFFERLENGTH );
+      //__enable_irq();
       return;
    }
    
@@ -500,6 +503,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
          {
             // start receive irq
             uart_receive( huart, rxBuffer, BUFFERLENGTH );
+            //__enable_irq();
             return ;
          }
       }
@@ -527,6 +531,8 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
 
    // create a new node in the list, with the received data
    list_insertData( preAmblePointer, frameSize, UART_TO_ETH );
+   
+   //__enable_irq();
    
    // start to receive again
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
@@ -748,14 +754,6 @@ void uart_customCallback( void )
 {
    // no clean and invalidate data cache, it will be done in HAL_UART_IdleLnCallback
    //uartBusActiveFlag = 1;
-   if( uartBusActiveFlag == 0 )
-   {
-      // start bytetimeout
-      uart_startBytetimeout();
-   }
-   else
-   {
-      //reset bytetimeout
-      uart_resetBytetimeout();
-   }
+   // start bytetimeout
+   uart_startBytetimeout();
 }

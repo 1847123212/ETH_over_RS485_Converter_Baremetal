@@ -14,13 +14,13 @@
     <StLinkDriver>
         <stlinkserialNo>43243335</stlinkserialNo>
         <stlinkfoundProbes>09241143:43243335:</stlinkfoundProbes>
-        <CStepIntDis>_ 0</CStepIntDis>
-        <LeaveTargetRunning>_ 0</LeaveTargetRunning>
         <stlinkResetStyle>0</stlinkResetStyle>
         <stlinkResetStrategy>2</stlinkResetStrategy>
+        <CStepIntDis>_ 0</CStepIntDis>
+        <LeaveTargetRunning>_ 0</LeaveTargetRunning>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>1399106709</Checksum>
+        <Checksum>2448596600</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -124,31 +124,6 @@
         <ShowTimeSum>1</ShowTimeSum>
         <SumSortOrder>0</SumSortOrder>
     </EventLog>
-    <DisassembleMode>
-        <mode>0</mode>
-    </DisassembleMode>
-    <Breakpoints2>
-        <Bp0>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp0>
-        <Bp1>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp1>
-        <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp2>
-        <Bp3>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp3>
-        <Bp4>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp4>
-        <Bp5>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp5>
-        <Bp6>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp6>
-        <Bp7>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1619.7" 0 0 1 "" 0 "" 0</Bp7>
-        <Bp8>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2815.7" 0 0 1 "" 0 "" 0</Bp8>
-        <Bp9>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2782.3" 0 0 1 "" 0 "" 0</Bp9>
-        <Bp10>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.0.1" 0 0 1 "" 0 "" 0</Bp10>
-        <Bp11>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp11>
-        <Bp12>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.0.1" 0 0 1 "" 0 "" 0</Bp12>
-        <Bp13>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1678.9" 0 0 1 "" 0 "" 0</Bp13>
-        <Bp14>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2638.3" 0 0 1 "" 0 "" 0</Bp14>
-        <Bp15>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2622.5" 0 0 1 "" 0 "" 0</Bp15>
-        <Bp16>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1671.11" 0 0 1 "" 0 "" 0</Bp16>
-        <Bp17>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_eth.c}.1141.7" 0 0 1 "" 0 "" 0</Bp17>
-        <Bp18>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.316.4" 0 0 1 "" 0 "" 0</Bp18>
-        <Count>19</Count>
-    </Breakpoints2>
     <TermIOLog>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
@@ -158,12 +133,6 @@
         <LogFile>_ ""</LogFile>
         <Category>_ 0</Category>
     </LogFile>
-    <Aliases>
-        <A0>_ "C:\Users\Nico\GitHub\Netscale_72_SW_Networkbridge\Src\main.c" "C:\Users\nkorn\Desktop\Netscale_72_SW_Networkbridge-20190506T052343Z-001\Netscale_72_SW_Networkbridge\Src\main.c"</A0>
-        <A1>_ "C:\Users\nkorn\Desktop\Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma.c" "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma.c"</A1>
-        <Count>2</Count>
-        <SuppressDialog>0</SuppressDialog>
-    </Aliases>
     <DriverProfiling>
         <Enabled>0</Enabled>
         <Mode>3</Mode>
@@ -177,4 +146,35 @@
     <CallStackStripe>
         <ShowTiming>1</ShowTiming>
     </CallStackStripe>
+    <DisassembleMode>
+        <mode>0</mode>
+    </DisassembleMode>
+    <Breakpoints2>
+        <Bp0>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp0>
+        <Bp1>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp1>
+        <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp2>
+        <Bp3>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp3>
+        <Bp4>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp4>
+        <Bp5>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp5>
+        <Bp6>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp6>
+        <Bp7>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1619.7" 0 0 1 "" 0 "" 0</Bp7>
+        <Bp8>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2815.7" 0 0 1 "" 0 "" 0</Bp8>
+        <Bp9>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2782.3" 0 0 1 "" 0 "" 0</Bp9>
+        <Bp10>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.760.1" 0 0 1 "" 0 "" 0</Bp10>
+        <Bp11>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp11>
+        <Bp12>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\eth.c}.722.1" 0 0 1 "" 0 "" 0</Bp12>
+        <Bp13>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1678.9" 0 0 1 "" 0 "" 0</Bp13>
+        <Bp14>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2638.3" 0 0 1 "" 0 "" 0</Bp14>
+        <Bp15>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2622.5" 0 0 1 "" 0 "" 0</Bp15>
+        <Bp16>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1671.11" 0 0 1 "" 0 "" 0</Bp16>
+        <Bp17>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_eth.c}.1141.7" 0 0 1 "" 0 "" 0</Bp17>
+        <Bp18>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_eth.c}.2518.7" 0 0 1 "" 0 "" 0</Bp18>
+        <Count>19</Count>
+    </Breakpoints2>
+    <Aliases>
+        <A0>_ "C:\Users\Nico\GitHub\Netscale_72_SW_Networkbridge\Src\main.c" "C:\Users\nkorn\Desktop\Netscale_72_SW_Networkbridge-20190506T052343Z-001\Netscale_72_SW_Networkbridge\Src\main.c"</A0>
+        <A1>_ "C:\Users\nkorn\Desktop\Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma.c" "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma.c"</A1>
+        <Count>2</Count>
+        <SuppressDialog>0</SuppressDialog>
+    </Aliases>
 </settings>
