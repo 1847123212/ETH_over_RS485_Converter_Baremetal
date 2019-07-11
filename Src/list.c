@@ -48,11 +48,7 @@ typedef struct node {
 // Private variables **********************************************************
 static node_t              *head;
 static node_t              *oldhead;
-static uint32_t            listLength;
-static int32_t             listSize;
-static uint32_t            listLimit;
 static uint32_t            mallocFailCounter;
-static uint8_t             listLockFlag;
 
 // Private functions **********************************************************
 static void led_gpio_init( void );
@@ -85,11 +81,7 @@ void list_init( void )
    head->next              = NULL;
    
    // init list length to 0
-   listLength = 0;
-   listLimit = 200;
-   
-   // reset the source lock flag
-   listLockFlag = 0;
+   //listLength = 0;
    
    // init malloc fail led
    led_timer_init();
@@ -105,21 +97,6 @@ void list_init( void )
 /// \return    -
 void list_manager( void )
 {
-   /*
-   if(listLength < listLimit)
-   {
-      return;
-   }
-   else
-   {
-      listLimit = 0;
-      if(listLength == 0)
-      {
-         listLimit = 200;
-      }
-   }
-*/
-   
    node_t *next = head->next;
    
    // check if there is data ready to send on the header node through its next member
@@ -148,41 +125,8 @@ void list_manager( void )
       }
       
       // decrement list length
-      listLength--;
+      //listLength--;
    }
-}
-
-// ----------------------------------------------------------------------------
-/// \brief     locks the ringbuffer access as shared source
-///
-/// \param     none
-///
-/// \return    -
-void list_lock( void )
-{
-   listLockFlag = 1;
-}
-
-// ----------------------------------------------------------------------------
-/// \brief     unlocks the ringbuffer access as shared source
-///
-/// \param     none
-///
-/// \return    -
-void list_unlock( void )
-{
-   listLockFlag = 0;
-}
-
-// ----------------------------------------------------------------------------
-/// \brief     unlocks the ringbuffer access as shared source
-///
-/// \param     none
-///
-/// \return    -
-uint8_t list_getLockStatus( void )
-{
-   return listLockFlag;
 }
 
 // ----------------------------------------------------------------------------
@@ -212,7 +156,7 @@ void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t me
       // increment malloc fail counter
       mallocFailCounter++;
       // enable all interrupts again
-      //__enable_irq();
+      __enable_irq();
       return;
    }
    
@@ -232,7 +176,7 @@ void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t me
       // free allready allocated data
       free(newNode);
       // enable all interrupts again
-      //__enable_irq();
+      __enable_irq();
       return;
    }
    
@@ -249,7 +193,7 @@ void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t me
    tailNode->next = newNode;
    
    // increment list length
-   listLength++;
+   //listLength++;
    
    // enable all interrupts again
    __enable_irq();

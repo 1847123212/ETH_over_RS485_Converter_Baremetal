@@ -69,14 +69,14 @@ int main(void)
    // init buffer and start to reveive
    list_init();
    
-   // initialize th ethernet interface
+   // initialize eth ethernet interface
    eth_init();
    
    // initialize the uart with rs485 transceiver
    uart_init();
 
    // Infinite loop
-   while (1)
+   while(1)
    {
       // wait for a new slot to be send
       list_manager();
