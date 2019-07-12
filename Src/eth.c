@@ -78,7 +78,6 @@ uint32_t current_pbuf_idx =0;
 
 // Private variables **********************************************************
 static   uint8_t  macaddress[6] = {ETH_MAC_ADDR0, ETH_MAC_ADDR1, ETH_MAC_ADDR2, ETH_MAC_ADDR3, ETH_MAC_ADDR4, ETH_MAC_ADDR5};
-//volatile uint8_t  txActiveFlagETH;
 
 // Global variables ***********************************************************
 extern UART_HandleTypeDef     huart2;
@@ -245,9 +244,6 @@ void eth_init( void )
       MACFilter.ReceiveAllMode = ENABLE;
       HAL_ETH_SetMACFilterConfig(&heth, &MACFilter);
       
-      // set flags
-      //txActiveFlagETH = 0;
-      
       /* start eth reception */
       HAL_ETH_Start_IT(&heth);
    }
@@ -286,11 +282,11 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
   */
 
   /* Configure PA1, PA2 and PA7 */
-  GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
-  GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStructure.Pull = GPIO_NOPULL; 
-  GPIO_InitStructure.Alternate = GPIO_AF11_ETH;
-  GPIO_InitStructure.Pin = GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_7;
+  GPIO_InitStructure.Speed       = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStructure.Mode        = GPIO_MODE_AF_PP;
+  GPIO_InitStructure.Pull        = GPIO_NOPULL; 
+  GPIO_InitStructure.Alternate   = GPIO_AF11_ETH;
+  GPIO_InitStructure.Pin         = GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_7;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
   
   /* Configure PB13 */
@@ -369,15 +365,9 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
 /// \return    none
 void eth_output( uint8_t* buffer, uint16_t length )
 {   
-   ETH_BufferTypeDef       Txbuffer;
-   ETH_DMADescTypeDef      *dmatxdesc = (ETH_DMADescTypeDef*)heth.TxDescList.CurTxDesc;
+   static ETH_BufferTypeDef       Txbuffer;
    
-   // as long as the buffer is accessed by the peripheral, wait here!
-   //while(txActiveFlagETH != 0);
    while(heth.gState != HAL_ETH_STATE_READY);
-   
-   // check if eth buffer is owned by dma or cpu
-   //while(READ_BIT(dmatxdesc->DESC3, ETH_DMATXNDESCWBF_OWN) == ETH_DMATXNDESCWBF_OWN);
    
    length = length-PREAMBLESFDLENGTH-CRC32LENGTH;
    buffer = buffer+PREAMBLESFDLENGTH;
@@ -407,13 +397,12 @@ void eth_output( uint8_t* buffer, uint16_t length )
    heth.Instance->MACA0LR = ((heth.Init.MACAddr[3] << 24) | (heth.Init.MACAddr[2] << 16) | (heth.Init.MACAddr[1] << 8) | heth.Init.MACAddr[0]);
    
    // Clean and Invalidate data cache
+   //__disable_irq();
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
-   
-   // set tx active flag
-   //txActiveFlagETH = 1;
+   //__enable_irq();
    
    // send the data
-   HAL_ETH_Transmit(&heth, &TxConfig,0);
+   HAL_ETH_Transmit_IT(&heth, &TxConfig);
 }
 
 //------------------------------------------------------------------------------
@@ -424,9 +413,6 @@ void eth_output( uint8_t* buffer, uint16_t length )
 /// \return    0 if OK -1 if Error
 int32_t ETH_PHY_IO_Init(void)
 {  
-   // We assume that MDIO GPIO configuration is already done
-   // in the ETH_MspInit() else it should be done here 
-  
    // Configure the MDIO Clock
    HAL_ETH_SetMDIOClockRange(&heth);
   
@@ -557,24 +543,18 @@ void eth_link_update( void )
 /// \return    none
 void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 {
-   uint32_t framelength = 0;
-   ETH_BufferTypeDef RxBuff;
-   
-   //__disable_irq();
-   
-   //HAL_ETH_IsRxDataAvailable(heth)
+   static ETH_BufferTypeDef RxBuff;
 
-   // invalidate data cache (deletes data in the cache itself)
+   // invalidate and clean data cache
+   //__disable_irq();
    SCB_CleanInvalidateDCache_by_Addr((uint32_t *)Rx_Buff, (ETH_RX_DESC_CNT*ETH_RX_BUFFER_SIZE));
+   //__enable_irq();
    
    // get data from the buffer
-   HAL_ETH_GetRxDataLength(heth, &framelength);
    HAL_ETH_GetRxDataBuffer(heth, &RxBuff);
    
    // create a new node in the list, with the received data
-   list_insertData( RxBuff.buffer, framelength, ETH_TO_UART );
-   
-   //__enable_irq();
+   list_insertData( RxBuff.buffer, RxBuff.len, ETH_TO_UART );
 
    // set the RX descriptor for next receive
    HAL_ETH_BuildRxDescriptors(heth);
@@ -588,13 +568,6 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 /// \return    none
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
 {
-   // invalidate data cache (deletes data in the cache itself)
-   //SCB_InvalidateDCache_by_Addr((uint32_t *)Tx_Buff, ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE);
-   // reset tx active flag
-   //txActiveFlagETH = 0;
-   //volatile ETH_TxDescListTypeDef *dmatxdesclist = &heth->TxDescList; 
-   //volatile uint32_t descidx = dmatxdesclist->CurTxDesc;
-   //CLEAR_BIT(descidx, ETH_DMATXNDESCRF_OWN);
 }
 
 //------------------------------------------------------------------------------
@@ -605,23 +578,6 @@ void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
 /// \return    none
 void HAL_ETH_DMAErrorCallback(ETH_HandleTypeDef *heth)
 {
-   // invalidate data cache (deletes data in the cache itself)
-   //SCB_InvalidateDCache_by_Addr((uint32_t *)Rx_Buff, ETH_RX_DESC_CNT*ETH_RX_BUFFER_SIZE);
-   //SCB_InvalidateDCache_by_Addr((uint32_t *)Tx_Buff, ETH_TX_BUFFER_SIZE);
-   /*
-   SCB_CleanInvalidateDCache();
-   
-   // finish tx state
-   if( txActiveFlagETH == 1 )
-   {
-      // reset tx active flag
-      txActiveFlagETH = 0;
-   }
-   else
-   {
-      HAL_ETH_BuildRxDescriptors(heth);
-   }
-*/
 }
 
 //------------------------------------------------------------------------------
@@ -632,22 +588,6 @@ void HAL_ETH_DMAErrorCallback(ETH_HandleTypeDef *heth)
 /// \return    none
 void HAL_ETH_MACErrorCallback(ETH_HandleTypeDef *heth)
 {
-   // invalidate data cache (deletes data in the cache itself)
-   //SCB_InvalidateDCache_by_Addr((uint32_t *)Rx_Buff, ETH_RX_DESC_CNT*ETH_RX_BUFFER_SIZE)
-   //SCB_InvalidateDCache_by_Addr((uint32_t *)Tx_Buff, ETH_TX_BUFFER_SIZE);
-   //SCB_CleanInvalidateDCache();
-/*
-   // finish tx state
-   if( txActiveFlagETH == 1 )
-   {
-      // reset tx active flag
-      txActiveFlagETH = 0;
-   }
-   else
-   {
-      HAL_ETH_BuildRxDescriptors(heth);
-   }
-*/
 }
 
 //------------------------------------------------------------------------------
@@ -658,19 +598,6 @@ void HAL_ETH_MACErrorCallback(ETH_HandleTypeDef *heth)
 /// \return    none
 void HAL_ETH_PMTCallback(ETH_HandleTypeDef *heth)
 {
-   //SCB_CleanInvalidateDCache();
-   /*
-   // finish tx state
-   if( txActiveFlagETH == 1 )
-   {
-      // reset tx active flag
-      txActiveFlagETH = 0;
-   }
-   else
-   {
-      HAL_ETH_BuildRxDescriptors(heth);
-   }
-*/
 }
 
 //------------------------------------------------------------------------------
@@ -681,19 +608,6 @@ void HAL_ETH_PMTCallback(ETH_HandleTypeDef *heth)
 /// \return    none
 void HAL_ETH_EEECallback(ETH_HandleTypeDef *heth)
 {
-   //SCB_CleanInvalidateDCache();
-   // finish tx state
-   /*
-   if( txActiveFlagETH == 1 )
-   {
-      // reset tx active flag
-      txActiveFlagETH = 0;
-   }
-   else
-   {
-      HAL_ETH_BuildRxDescriptors(heth);
-   }
-*/
 }
 
 //------------------------------------------------------------------------------
@@ -704,17 +618,4 @@ void HAL_ETH_EEECallback(ETH_HandleTypeDef *heth)
 /// \return    none
 void HAL_ETH_WakeUpCallback(ETH_HandleTypeDef *heth)
 {
-   //SCB_CleanInvalidateDCache();
-   /*
-   // finish tx state
-   if( txActiveFlagETH == 1 )
-   {
-      // reset tx active flag
-      txActiveFlagETH = 0;
-   }
-   else
-   {
-      HAL_ETH_BuildRxDescriptors(heth);
-   }
-*/
 }

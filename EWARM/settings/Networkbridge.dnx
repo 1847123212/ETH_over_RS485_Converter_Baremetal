@@ -20,7 +20,7 @@
         <stlinkfoundProbes>43185639:FFFFFFFF:</stlinkfoundProbes>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>3593890930</Checksum>
+        <Checksum>1089287807</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -145,7 +145,7 @@
         <Bp14>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2638.3" 0 0 1 "" 0 "" 0</Bp14>
         <Bp15>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.2622.5" 0 0 1 "" 0 "" 0</Bp15>
         <Bp16>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c}.1671.11" 0 0 1 "" 0 "" 0</Bp16>
-        <Bp17>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_eth.c}.1141.7" 0 0 1 "" 0 "" 0</Bp17>
+        <Bp17>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_eth.c}.1164.3" 0 0 1 "" 0 "" 0</Bp17>
         <Bp18>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_eth.c}.2518.7" 0 0 1 "" 0 "" 0</Bp18>
         <Count>19</Count>
     </Breakpoints2>

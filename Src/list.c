@@ -97,7 +97,8 @@ void list_init( void )
 /// \return    -
 void list_manager( void )
 {
-   node_t *next = head->next;
+   static node_t *next;
+   next = head->next;
    
    // check if there is data ready to send on the header node through its next member
    if( next != NULL )
@@ -123,7 +124,6 @@ void list_manager( void )
          // setup the next frame pointed by the tx pointer and send it hrough the uart interface
          uart_output( head->data, head->dataLength );
       }
-      
       // decrement list length
       //listLength--;
    }
@@ -137,7 +137,7 @@ void list_manager( void )
 /// \param     [in] direction
 ///
 /// \return    -
-void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t messageDirection )
+inline void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t messageDirection )
 {
    // disable all interrupts, as malloc is used in an isr
    __disable_irq();
