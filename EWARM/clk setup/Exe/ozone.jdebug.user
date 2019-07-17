@@ -1,0 +1,24 @@
+
+Breakpoint=list.c:120, State=BP_STATE_ON
+Breakpoint=list.c:125, State=BP_STATE_ON
+OpenDocument="list.c", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\Src\list.c", Line=88
+OpenDocument="stm32h7xx_hal_uart.c", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c", Line=1925
+OpenDocument="main.c", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\Src\main.c", Line=54
+OpenDocument="startup_stm32h743xx.s", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\startup_stm32h743xx.s", Line=36
+OpenToolbar="File", Floating=0, x=1, y=0
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=1, w=103, h=395, FilterBarShown=0, ExecCountersShown=0
+OpenWindow="Source", x=0, y=0, w=0, h=0, FilterBarShown=0, ExecCountersShown=0
+OpenWindow="Memory 1", DockArea=BOTTOM, x=0, y=0, w=1920, h=17, FilterBarShown=0, EditorAddress=0x0
+OpenWindow="Watched Data", DockArea=RIGHT, x=0, y=0, w=103, h=473, FilterBarShown=0
+OpenWindow="Functions", DockArea=LEFT, x=0, y=3, w=115, h=271, FilterBarShown=1
+OpenWindow="Call Graph", DockArea=LEFT, x=0, y=0, w=115, h=271, FilterBarShown=1
+OpenWindow="Code Profile", DockArea=LEFT, x=0, y=2, w=115, h=271, FilterBarShown=1
+OpenWindow="Instruction Trace", DockArea=LEFT, x=0, y=1, w=115, h=53, FilterBarShown=0
+OpenWindow="Console", DockArea=BOTTOM, x=0, y=1, w=1920, h=104, FilterBarShown=0
+OpenWindow="J-Link Control Panel", DockArea=FLOATING, x=0, y=441, w=0, h=830, FilterBarShown=0
+TableHeader="Watched Data", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[126;92;52;198]
+TableHeader="Functions", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Address";"Size";"#Insts";"Source"], ColWidths=[52;64;44;57;433]
+TableHeader="Call Graph", SortCol="Stack Total", SortOrder="DESCENDING", VisibleCols=["Name";"Stack Total";"Stack Local";"Depth";"Called From"], ColWidths=[163;77;78;54;278]
+TableHeader="Code Profile", SortCol="Run Count", SortOrder="DESCENDING", VisibleCols=["Source Coverage";"File / Function";"Inst. Coverage";"Run Count";"Fetch Count";"Load"], ColWidths=[108;310;98;76;84;137]
+TableHeader="tableWidgetSamples", SortCol="Index", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Channel 0"], ColWidths=[72;102;108]

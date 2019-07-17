@@ -129,10 +129,10 @@ void uart_init( void )
    huart2.Init.HwFlowCtl                     = UART_HWCONTROL_NONE;
    huart2.Init.OverSampling                  = UART_OVERSAMPLING_16;
    huart2.Init.OneBitSampling                = UART_ONE_BIT_SAMPLE_DISABLE;
-   huart2.Init.Prescaler                     = UART_PRESCALER_DIV1;
-   huart2.Init.FIFOMode                      = UART_FIFOMODE_DISABLE;
-   huart2.Init.TXFIFOThreshold               = UART_TXFIFO_THRESHOLD_1_8;
-   huart2.Init.RXFIFOThreshold               = UART_RXFIFO_THRESHOLD_1_8;
+   huart2.Init.ClockPrescaler                = UART_PRESCALER_DIV1;
+   //huart2.Init.FIFOMode                      = UART_FIFOMODE_DISABLE;
+   //huart2.Init.TXFIFOThreshold               = UART_TXFIFO_THRESHOLD_1_8;
+   //huart2.Init.RXFIFOThreshold               = UART_RXFIFO_THRESHOLD_1_8;
    huart2.AdvancedInit.AdvFeatureInit        = UART_ADVFEATURE_NO_INIT;
    if (HAL_UART_Init(&huart2) != HAL_OK)
    {
@@ -292,7 +292,7 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
       }
    }
    // RS485 drive enable -> write to the bus (listen not anymore possible at this moment)
-   GPIOD->BSRRL = UART_PIN_BUS_RTS|UART_PIN_BUS_CTS;
+   HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
    // Clean data cache
    //__disable_irq();
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
@@ -314,7 +314,7 @@ static void uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t S
    // wait until uart peripheral is ready
    while(huart2->gState != HAL_UART_STATE_READY);
    // RS485 set to listening
-   GPIOD->BSRRH = UART_PIN_BUS_RTS|UART_PIN_BUS_CTS;
+   HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
    // enable idle line and rx interrupt
    __HAL_UART_ENABLE_IT(huart2, UART_IT_IDLE);
    __HAL_UART_ENABLE_IT(huart2, UART_IT_RXNE);
@@ -375,7 +375,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
    }
    if (huart->Instance->ISR & USART_ISR_NE) // Noise Error
    {
-      huart->Instance->ICR = USART_ICR_NCF;
+      //huart->Instance->ICR = USART_ICR_NCF;
    }
    if (huart->Instance->ISR & USART_ISR_FE) // Framing Error
    {    
@@ -589,7 +589,7 @@ void uart_ledTimerCallback( void )
 static void setRandomWait( void )
 {
    /* Set the Autoreload value */
-  TIM3->ARR = (uint32_t)(rand() % 100) + 1;
+  TIM3->ARR = (uint32_t)(rand() % 10) + 1;
   /* set counter value to 0 */
   TIM3->CNT = 0;
   /* start the timer */
