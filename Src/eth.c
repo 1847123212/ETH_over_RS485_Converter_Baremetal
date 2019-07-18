@@ -45,8 +45,8 @@ ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT];     /* Ethernet Rx DMA Descri
 ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT];     /* Ethernet Tx DMA Descriptors */
 #pragma location=0x30040200
 uint8_t Rx_Buff[ETH_RX_DESC_CNT][ETH_MAX_PACKET_SIZE]; /* Ethernet Receive Buffers */
-
-static uint8_t Tx_Buff[ETH_TX_DESC_CNT][ETH_MAX_PACKET_SIZE]; /* Ethernet Transmit Buffers */
+#pragma location=0x30044000
+uint8_t Tx_Buff[ETH_TX_DESC_CNT][ETH_MAX_PACKET_SIZE]; /* Ethernet Transmit Buffers */
 
 #elif defined ( __CC_ARM )  /* MDK ARM Compiler */
 
@@ -114,11 +114,11 @@ static void mpu_eth_config(void)
 {
   MPU_Region_InitTypeDef MPU_InitStruct;
   
-  // Disable the MPU
+  /* Disable the MPU */
   HAL_MPU_Disable();
 
-  // Configure the MPU attributes as Device not cacheable 
-  // for ETH DMA descriptors
+  /* Configure the MPU attributes as Device not cacheable 
+     for ETH DMA descriptors */
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.BaseAddress = 0x30040000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_256B;
@@ -133,23 +133,23 @@ static void mpu_eth_config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   
-  // Configure the MPU attributes as Cacheable write through 
-  // for RAM heap which contains the Tx buffers
+  /* Configure the MPU attributes as Normal Non Cacheable
+     for LwIP RAM heap which contains the Tx buffers */
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.BaseAddress = 0x30044000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_16KB;
   MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
-  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER1;
-  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
   MPU_InitStruct.SubRegionDisable = 0x00;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  // Enable the MPU
+  /* Enable the MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
 
@@ -178,7 +178,7 @@ void eth_init( void )
    //tx descriptor
    // testwise set backupaddress
    heth.Init.TxDesc->BackupAddr0 = (uint32_t)&Tx_Buff;
-   heth.Init.TxDesc->BackupAddr1 = 0;
+   heth.Init.TxDesc->BackupAddr1 = (uint32_t)&Tx_Buff;
    
    if (HAL_ETH_Init(&heth) != HAL_OK)
    {
@@ -397,9 +397,7 @@ void eth_output( uint8_t* buffer, uint16_t length )
    heth.Instance->MACA0LR = ((heth.Init.MACAddr[3] << 24) | (heth.Init.MACAddr[2] << 16) | (heth.Init.MACAddr[1] << 8) | heth.Init.MACAddr[0]);
    
    // Clean and Invalidate data cache
-   //__disable_irq();
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
-   //__enable_irq();
    
    // send the data
    HAL_ETH_Transmit_IT(&heth, &TxConfig);
@@ -546,9 +544,7 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
    static ETH_BufferTypeDef RxBuff;
 
    // invalidate and clean data cache
-   //__disable_irq();
    SCB_CleanInvalidateDCache_by_Addr((uint32_t *)Rx_Buff, (ETH_RX_DESC_CNT*ETH_RX_BUFFER_SIZE));
-   //__enable_irq();
    
    // get data from the buffer
    HAL_ETH_GetRxDataBuffer(heth, &RxBuff);

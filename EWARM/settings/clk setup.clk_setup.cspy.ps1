@@ -23,9 +23,9 @@
 
 if ($debugfile -eq "")
 {
-& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\settings\clk setup.clk_setup.general.xcl" --backend -f "C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\settings\clk setup.clk_setup.driver.xcl" 
+& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.general.xcl" --backend -f "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.driver.xcl" 
 }
 else
 {
-& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\settings\clk setup.clk_setup.general.xcl" --debug_file=$debugfile --backend -f "C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\settings\clk setup.clk_setup.driver.xcl" 
+& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.general.xcl" --debug_file=$debugfile --backend -f "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.driver.xcl" 
 }

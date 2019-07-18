@@ -49,6 +49,10 @@ typedef struct node {
 static node_t              *head;
 static node_t              *oldhead;
 static uint32_t            mallocFailCounter;
+static uint32_t            dataPacketsIN;
+static uint32_t            bytesIN;
+static uint32_t            dataPacketsOUT;
+static uint32_t            bytesOUT;
 
 // Private functions **********************************************************
 static void led_gpio_init( void );
@@ -80,8 +84,12 @@ void list_init( void )
    head->messageDirection  = NOT_INITIALIZED;
    head->next              = NULL;
    
-   // init list length to 0
-   //listLength = 0;
+   // init statistics to 0
+   dataPacketsIN     = 0;
+   bytesIN           = 0;
+   dataPacketsOUT    = 0;
+   bytesOUT          = 0;
+   mallocFailCounter = 0;
    
    // init malloc fail led
    led_timer_init();
@@ -125,7 +133,8 @@ void list_manager( void )
          uart_output( head->data, head->dataLength );
       }
       // decrement list length
-      //listLength--;
+      dataPacketsOUT++;
+      bytesOUT += head->dataLength;
    }
 }
 
@@ -193,7 +202,8 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    tailNode->next = newNode;
    
    // increment list length
-   //listLength++;
+   dataPacketsIN++;
+   bytesIN += dataLength;
    
    // enable all interrupts again
    __enable_irq();

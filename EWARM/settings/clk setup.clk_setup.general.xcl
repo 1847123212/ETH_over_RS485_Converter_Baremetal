@@ -1,8 +1,8 @@
 "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\arm\bin\armproc.dll" 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\arm\bin\armjlink2.dll" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\arm\bin\armstlink2.dll" 
 
-"C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\clk setup\Exe\clk setup.out" 
+"C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\clk setup\Exe\clk setup.out" 
 
 --plugin="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\arm\bin\armbat.dll" 
 

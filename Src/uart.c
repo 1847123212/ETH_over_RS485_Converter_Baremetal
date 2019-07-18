@@ -47,6 +47,8 @@ static uint8_t                txBuffer[BUFFERLENGTH];
 static uint8_t                uartBusAccessFlag;
 static uint8_t                uartBusActiveFlag;
 
+static uint32_t               colCounter;
+
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
 DMA_HandleTypeDef             hdma_usart2_rx;
@@ -87,12 +89,13 @@ void uart_init( void )
   
    // setup hardware crc
    crc_init();
+   colCounter = 0;
 
    // LED for Collision indication
-   led_gpio_init();
+   //led_gpio_init();
    
    // Timer for Collision LED Configuration
-   led_timer_init();
+   //led_timer_init();
    
    // Timer for bus access
    bus_timer_init();
@@ -291,12 +294,11 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
          goFlag = 1;
       }
    }
+
    // RS485 drive enable -> write to the bus (listen not anymore possible at this moment)
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
-   // Clean data cache
-   //__disable_irq();
+   // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
-   //__enable_irq();
    // start transmitting in interrupt mode
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
@@ -318,10 +320,8 @@ static void uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t S
    // enable idle line and rx interrupt
    __HAL_UART_ENABLE_IT(huart2, UART_IT_IDLE);
    __HAL_UART_ENABLE_IT(huart2, UART_IT_RXNE);
-   // Clean and Invalidate data cache
-   //__disable_irq();
+   // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
-   //__enable_irq();
    // start receiving in interrupt mode
    HAL_UART_Receive_DMA(huart2, pData, Size);
 }
@@ -347,14 +347,6 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 /// \return    none
 void HAL_UART_RxCpltCallback( UART_HandleTypeDef *huart )
 {
-   // take action on the peripherals
-   HAL_UART_DMAStop(huart);
-   HAL_UART_Abort_IT(huart);
-   __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
-   __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
-   
-   // start receive irq
-   uart_receive( huart, rxBuffer, BUFFERLENGTH );
 }
 
 //------------------------------------------------------------------------------
@@ -443,19 +435,17 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
    
    // crc check
-   /*
    if( uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
    {
       // set collision led
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+      //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
       // start timer to reset collision led
-      HAL_TIM_Base_Start_IT(&LedTimHandle);
+      //HAL_TIM_Base_Start_IT(&LedTimHandle);
       // start receive irq
       uart_receive( huart, rxBuffer, BUFFERLENGTH );
       colCounter++;
       return ;
    }
-*/
 
    // create a new node in the list, with the received data
    list_insertData( preAmblePointer, frameSize, UART_TO_ETH );
