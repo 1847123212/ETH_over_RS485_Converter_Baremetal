@@ -122,22 +122,31 @@ void uart_init( void )
    GPIO_InitStruct.Alternate                 = GPIO_AF7_USART2;
    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
    
-   // USER CODE END USART2_Init 1
-   huart2.Instance                           = USART2;
-   huart2.Init.BaudRate                      = 5000000;
-   huart2.Init.WordLength                    = UART_WORDLENGTH_8B;
-   huart2.Init.StopBits                      = UART_STOPBITS_1;
-   huart2.Init.Parity                        = UART_PARITY_NONE;
-   huart2.Init.Mode                          = UART_MODE_TX_RX;
-   huart2.Init.HwFlowCtl                     = UART_HWCONTROL_NONE;
-   huart2.Init.OverSampling                  = UART_OVERSAMPLING_16;
-   huart2.Init.OneBitSampling                = UART_ONE_BIT_SAMPLE_DISABLE;
-   huart2.Init.ClockPrescaler                = UART_PRESCALER_DIV1;
-   //huart2.Init.FIFOMode                      = UART_FIFOMODE_DISABLE;
-   //huart2.Init.TXFIFOThreshold               = UART_TXFIFO_THRESHOLD_1_8;
-   //huart2.Init.RXFIFOThreshold               = UART_RXFIFO_THRESHOLD_1_8;
-   huart2.AdvancedInit.AdvFeatureInit        = UART_ADVFEATURE_NO_INIT;
+   // USART2 2 init
+   huart2.Instance = USART2;
+   huart2.Init.BaudRate = 10000000;
+   huart2.Init.WordLength = UART_WORDLENGTH_8B;
+   huart2.Init.StopBits = UART_STOPBITS_1;
+   huart2.Init.Parity = UART_PARITY_NONE;
+   huart2.Init.Mode = UART_MODE_TX_RX;
+   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+   huart2.Init.OverSampling = UART_OVERSAMPLING_8;
+   huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+   huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+   huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
    if (HAL_UART_Init(&huart2) != HAL_OK)
+   {
+      Error_Handler();
+   }
+   if (HAL_UARTEx_SetTxFifoThreshold(&huart2, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+   {
+      Error_Handler();
+   }
+   if (HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+   {
+      Error_Handler();
+   }
+   if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK)
    {
       Error_Handler();
    }
@@ -280,8 +289,6 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    // wait for the bus to become idle and send then data
    while(goFlag != 1)
    {
-      // wait until uart peripheral is ready and line is idle
-      while(uartBusActiveFlag != 0){}
       // wait a random short time to avoid possible collisions at the beginning
       uartBusAccessFlag = 0;
       // wait for a random time to access the bus
@@ -515,9 +522,14 @@ static void led_timer_init( void )
 static void bus_timer_init( void )
 {
    // Compute the prescaler value to have TIM3 counter clock equal to 1000000 Hz = 1 us
-   uint32_t uwPrescalerValue = (uint32_t)(SystemCoreClock / (2*1000000)) - 1; // div with 2 because apb1 runs on 200MHz
+   // (24 MHz / 2 M)-1 = 11
+   // Prescaler = (TIM3CLK / TIM3 counter clock) - 1
+   // TIM3CLK = 120 MHz
+   // TIM3 counter clock = us = 1000000
+   //uint32_t uwPrescalerValue = (uint32_t)(SystemCoreClock / (2*1000000)) - 1;
+   uint32_t uwPrescalerValue = (uint32_t)(120000000 / (1000000)) - 1; // div with 2 because apb1 runs on 120 MHz
    
-   // clock
+   // clock (APB1)
    __HAL_RCC_TIM3_CLK_ENABLE();
    
    // configuration
@@ -579,7 +591,7 @@ void uart_ledTimerCallback( void )
 static void setRandomWait( void )
 {
    /* Set the Autoreload value */
-  TIM3->ARR = (uint32_t)(rand() % 10) + 1;
+  TIM3->ARR = (uint32_t)(rand() % 10)+1;
   /* set counter value to 0 */
   TIM3->CNT = 0;
   /* start the timer */

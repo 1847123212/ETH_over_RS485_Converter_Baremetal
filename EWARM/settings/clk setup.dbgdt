@@ -150,7 +150,7 @@
                     <item>frameSize</item>
                     <item>rxBuffer</item>
                     <item>error_counter</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>

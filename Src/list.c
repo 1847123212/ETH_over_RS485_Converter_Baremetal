@@ -53,6 +53,8 @@ static uint32_t            dataPacketsIN;
 static uint32_t            bytesIN;
 static uint32_t            dataPacketsOUT;
 static uint32_t            bytesOUT;
+static uint32_t            listLengthPeak;
+static uint32_t            listLength;
 
 // Private functions **********************************************************
 static void led_gpio_init( void );
@@ -90,6 +92,8 @@ void list_init( void )
    dataPacketsOUT    = 0;
    bytesOUT          = 0;
    mallocFailCounter = 0;
+   listLengthPeak    = 0;
+   listLength        = 0;
    
    // init malloc fail led
    led_timer_init();
@@ -134,6 +138,7 @@ void list_manager( void )
       }
       // decrement list length
       dataPacketsOUT++;
+      listLength--;
       bytesOUT += head->dataLength;
    }
 }
@@ -203,7 +208,12 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    
    // increment list length
    dataPacketsIN++;
+   listLength++;
    bytesIN += dataLength;
+   if( listLength > listLengthPeak )
+   {
+      listLengthPeak = listLength;
+   }
    
    // enable all interrupts again
    __enable_irq();

@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <settings>
     <StLinkDriver>
-        <stlinkserialNo>43013145</stlinkserialNo>
-        <stlinkfoundProbes>09241143:43013145:</stlinkfoundProbes>
         <CStepIntDis>_ 0</CStepIntDis>
         <LeaveTargetRunning>_ 0</LeaveTargetRunning>
         <stlinkResetStyle>0</stlinkResetStyle>
         <stlinkResetStrategy>2</stlinkResetStrategy>
+        <stlinkserialNo>43184740</stlinkserialNo>
+        <stlinkfoundProbes>09241143:43184740:</stlinkfoundProbes>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>1447910161</Checksum>
+        <Checksum>3253503648</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -113,10 +113,6 @@
     <Breakpoints2>
         <Count>0</Count>
     </Breakpoints2>
-    <TermIOLog>
-        <LoggingEnabled>_ 0</LoggingEnabled>
-        <LogFile>_ ""</LogFile>
-    </TermIOLog>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
@@ -139,4 +135,8 @@
     <CallStackStripe>
         <ShowTiming>1</ShowTiming>
     </CallStackStripe>
+    <TermIOLog>
+        <LoggingEnabled>_ 0</LoggingEnabled>
+        <LogFile>_ ""</LogFile>
+    </TermIOLog>
 </settings>

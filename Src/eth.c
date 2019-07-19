@@ -200,15 +200,16 @@ void eth_init( void )
    
    /* Initialize the LAN8742 ETH PHY */
    LAN8742_Init(&LAN8742);
-   //LAN8742_SetLinkState(&LAN8742, LAN8742_STATUS_10MBITS_FULLDUPLEX);
+   LAN8742_SetLinkState(&LAN8742, LAN8742_STATUS_10MBITS_FULLDUPLEX);
+   HAL_Delay(3000);
    PHYLinkState = LAN8742_GetLinkState(&LAN8742);
    
    /* Get link state */  
-   if(PHYLinkState <= LAN8742_STATUS_LINK_DOWN)
-   {
-   }
-   else 
-   {
+   //if(PHYLinkState <= LAN8742_STATUS_LINK_DOWN)
+   //{
+   //}
+   //else 
+   //{
       switch (PHYLinkState)
       {
       case LAN8742_STATUS_100MBITS_FULLDUPLEX:
@@ -246,7 +247,7 @@ void eth_init( void )
       
       /* start eth reception */
       HAL_ETH_Start_IT(&heth);
-   }
+   //}
 }
 
 //------------------------------------------------------------------------------
