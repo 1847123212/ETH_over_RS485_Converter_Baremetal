@@ -1,22 +1,24 @@
-OpenDocument="main.c", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\Src\main.c", Line=59
-OpenDocument="eth.c", FilePath="C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Src\eth.c", Line=567
-OpenDocument="list.c", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\Src\list.c", Line=85
-OpenDocument="stm32h7xx_hal_uart.c", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c", Line=1925
-OpenDocument="startup_stm32h743xx.s", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\startup_stm32h743xx.s", Line=220
+
+Breakpoint=eth.c:416, State=BP_STATE_DISABLED
+Breakpoint=eth.c:578, State=BP_STATE_ON
+OpenDocument="main.c", FilePath="C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Src\main.c", Line=72
+OpenDocument="uart.c", FilePath="C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Src\uart.c", Line=435
+OpenDocument="eth.c", FilePath="C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Src\eth.c", Line=547
+OpenDocument="list.c", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\Src\list.c", Line=111
+OpenDocument="stm32h7xx_hal_uart.c", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c", Line=0
+OpenDocument="startup_stm32h743xx.s", FilePath="C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\startup_stm32h743xx.s", Line=0
 OpenToolbar="File", Floating=0, x=1, y=0
 OpenToolbar="Debug", Floating=0, x=0, y=0
-OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=1, w=132, h=356, FilterBarShown=0, ExecCountersShown=0
+OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=1, w=371, h=331, FilterBarShown=0, ExecCountersShown=0
 OpenWindow="Source", x=0, y=0, w=0, h=0, FilterBarShown=0, ExecCountersShown=0
-OpenWindow="Watched Data", DockArea=RIGHT, x=0, y=0, w=132, h=415, FilterBarShown=0
-OpenWindow="Functions", DockArea=LEFT, x=0, y=3, w=507, h=233, FilterBarShown=1
-OpenWindow="Call Graph", DockArea=LEFT, x=0, y=0, w=507, h=233, FilterBarShown=1
-OpenWindow="Timeline", DockArea=FLOATING, x=0, y=536, w=68, h=762, FilterBarShown=0
-OpenWindow="Code Profile", DockArea=LEFT, x=0, y=2, w=507, h=234, FilterBarShown=1
-OpenWindow="Instruction Trace", DockArea=LEFT, x=0, y=1, w=507, h=69, FilterBarShown=0
+OpenWindow="Watched Data", DockArea=RIGHT, x=0, y=0, w=371, h=378, FilterBarShown=0
+OpenWindow="Functions", DockArea=LEFT, x=0, y=2, w=507, h=297, FilterBarShown=1
+OpenWindow="Call Graph", DockArea=LEFT, x=0, y=0, w=507, h=297, FilterBarShown=1
+OpenWindow="Code Profile", DockArea=FLOATING, x=2332, y=211, w=1103, h=630, FilterBarShown=1
+OpenWindow="Instruction Trace", DockArea=LEFT, x=0, y=1, w=507, h=114, FilterBarShown=0
 OpenWindow="Console", DockArea=BOTTOM, x=0, y=0, w=1920, h=219, FilterBarShown=0
-OpenWindow="J-Link Control Panel", DockArea=FLOATING, x=89, y=54, w=1422, h=830, FilterBarShown=0
 TableHeader="Watched Data", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[126;92;52;198]
-TableHeader="Functions", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Address";"Size";"#Insts";"Source"], ColWidths=[52;64;44;57;273]
 TableHeader="Call Graph", SortCol="Stack Total", SortOrder="DESCENDING", VisibleCols=["Name";"Stack Total";"Stack Local";"Depth";"Called From"], ColWidths=[163;77;78;54;278]
-TableHeader="Code Profile", SortCol="Run Count", SortOrder="DESCENDING", VisibleCols=["Source Coverage";"File / Function";"Inst. Coverage";"Run Count";"Fetch Count";"Load"], ColWidths=[108;310;98;76;84;137]
+TableHeader="Code Profile", SortCol="Run Count", SortOrder="DESCENDING", VisibleCols=["Source Coverage";"File / Function";"Inst. Coverage";"Run Count";"Fetch Count";"Load"], ColWidths=[108;310;98;76;84;410]
 TableHeader="tableWidgetSamples", SortCol="Index", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Channel 0"], ColWidths=[72;102;108]
+TableHeader="Functions", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Address";"Size";"#Insts";"Source"], ColWidths=[52;64;44;57;273]

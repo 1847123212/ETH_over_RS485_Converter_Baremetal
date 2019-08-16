@@ -200,8 +200,8 @@ void eth_init( void )
    
    /* Initialize the LAN8742 ETH PHY */
    LAN8742_Init(&LAN8742);
-   LAN8742_SetLinkState(&LAN8742, LAN8742_STATUS_10MBITS_FULLDUPLEX);
-   HAL_Delay(3000);
+   //LAN8742_SetLinkState(&LAN8742, LAN8742_STATUS_10MBITS_FULLDUPLEX);
+   //HAL_Delay(3000);
    PHYLinkState = LAN8742_GetLinkState(&LAN8742);
    
    /* Get link state */  
@@ -366,7 +366,8 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
 /// \return    none
 void eth_output( uint8_t* buffer, uint16_t length )
 {   
-   static ETH_BufferTypeDef       Txbuffer;
+   static ETH_BufferTypeDef   Txbuffer;
+   static uint32_t            eth_tx_err_counter = 0;
    
    while(heth.gState != HAL_ETH_STATE_READY);
    
@@ -399,9 +400,12 @@ void eth_output( uint8_t* buffer, uint16_t length )
    
    // Clean and Invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
-   
+
    // send the data
-   HAL_ETH_Transmit_IT(&heth, &TxConfig);
+   if(HAL_ETH_Transmit_IT(&heth, &TxConfig) != HAL_OK)
+   {
+      eth_tx_err_counter++;
+   }
 }
 
 //------------------------------------------------------------------------------

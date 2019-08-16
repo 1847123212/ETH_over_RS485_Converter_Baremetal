@@ -281,7 +281,8 @@ static uint32_t uart_calcCRC( uint32_t* dataPointer, uint32_t dataLength )
 static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size )
 {
    // generate variable allready at the beginning of program run
-   static uint8_t goFlag; 
+   static uint8_t    goFlag; 
+   static uint32_t   uart_tx_err_counter = 0;
    
    // reset go flag
    goFlag = 0;
@@ -309,7 +310,12 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    // start transmitting in interrupt mode
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
-   HAL_UART_Transmit_DMA(huart, (uint8_t*)pData, Size);
+   
+   // send the data
+   if(HAL_UART_Transmit_DMA(huart, (uint8_t*)pData, Size) != HAL_OK )
+   {
+      uart_tx_err_counter++;
+   }
 }
 
 //------------------------------------------------------------------------------

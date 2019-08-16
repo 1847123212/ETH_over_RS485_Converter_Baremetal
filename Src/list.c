@@ -206,6 +206,9 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    // tail node needs address of the new tailnode "newNode"
    tailNode->next = newNode;
    
+   // enable all interrupts again
+   __enable_irq();
+   
    // increment list length
    dataPacketsIN++;
    listLength++;
@@ -214,9 +217,6 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    {
       listLengthPeak = listLength;
    }
-   
-   // enable all interrupts again
-   __enable_irq();
 }
 
 //------------------------------------------------------------------------------
