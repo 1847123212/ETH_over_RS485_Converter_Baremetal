@@ -371,6 +371,9 @@ void eth_output( uint8_t* buffer, uint16_t length )
    
    while(heth.gState != HAL_ETH_STATE_READY);
    
+   // Clean and Invalidate data cache
+   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
+
    length = length-PREAMBLESFDLENGTH-CRC32LENGTH;
    buffer = buffer+PREAMBLESFDLENGTH;
 
@@ -398,9 +401,6 @@ void eth_output( uint8_t* buffer, uint16_t length )
    // Set MAC addr bits 0 to 31
    heth.Instance->MACA0LR = ((heth.Init.MACAddr[3] << 24) | (heth.Init.MACAddr[2] << 16) | (heth.Init.MACAddr[1] << 8) | heth.Init.MACAddr[0]);
    
-   // Clean and Invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
-
    // send the data
    if(HAL_ETH_Transmit_IT(&heth, &TxConfig) != HAL_OK)
    {

@@ -533,7 +533,7 @@ static void bus_timer_init( void )
    // TIM3CLK = 120 MHz
    // TIM3 counter clock = us = 1000000
    //uint32_t uwPrescalerValue = (uint32_t)(SystemCoreClock / (2*1000000)) - 1;
-   uint32_t uwPrescalerValue = (uint32_t)(120000000 / (1000000)) - 1; // div with 2 because apb1 runs on 120 MHz
+   uint32_t uwPrescalerValue = (uint32_t)(120000000 / (10000000)) - 1; // div with 2 because apb1 runs on 120 MHz
    
    // clock (APB1)
    __HAL_RCC_TIM3_CLK_ENABLE();
@@ -597,7 +597,7 @@ void uart_ledTimerCallback( void )
 static void setRandomWait( void )
 {
    /* Set the Autoreload value */
-  TIM3->ARR = (uint32_t)(rand() % 10)+1;
+  TIM3->ARR = (uint32_t)(rand() % 1000)+300;
   /* set counter value to 0 */
   TIM3->CNT = 0;
   /* start the timer */
