@@ -1052,6 +1052,9 @@
         </group>
         <group>
             <name>User</name>
+            <group>
+                <name>inc</name>
+            </group>
             <file>
                 <name>$PROJ_DIR$\..\Src\eth.c</name>
             </file>

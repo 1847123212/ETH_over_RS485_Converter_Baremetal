@@ -47,7 +47,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -192,21 +191,14 @@ static void CPU_CACHE_Enable(void)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-   if( htim->Instance == TIM2 )   // collision led timer callback
-   {
-      uart_ledTimerCallback();
-   }
    if( htim->Instance == TIM3 )   // bus access timer flag setter
    {
-      uart_setUartAccessFlag();
+      //uart_setUartAccessFlag();
+      bus_uart_timeoutCallback();
    }
    if( htim->Instance == TIM4 )   // malloc fail led timer callback
    {
       list_ledTimerCallback();
-   }
-   if( htim->Instance == TIM5 )   // bytetimeout to indicate that the bus is idle
-   {
-      uart_bytetimeoutTimerCallback();
    }
 }
 
