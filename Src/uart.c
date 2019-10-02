@@ -497,7 +497,7 @@ static void bus_timer_init( void )
 static void bus_uart_startRandomTimout( void )
 {
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(rand() % 1000)+500; // default for 10 mbit 1000+300
+   TIM3->ARR = (uint32_t)(rand() % 10000)+500; // default for 10 mbit 1000+300
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
