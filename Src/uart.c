@@ -124,7 +124,7 @@ void uart_init( void )
    
    // USART2 2 init
    huart2.Instance = USART2;
-   huart2.Init.BaudRate = 10000000;
+   huart2.Init.BaudRate = 6000000;
    huart2.Init.WordLength = UART_WORDLENGTH_8B;
    huart2.Init.StopBits = UART_STOPBITS_1;
    huart2.Init.Parity = UART_PARITY_NONE;
@@ -218,7 +218,13 @@ static void crc_init(void)
 {
    hcrc.Instance                       = CRC;
    hcrc.Init.DefaultPolynomialUse      = DEFAULT_POLYNOMIAL_ENABLE;
+   //hcrc.Init.GeneratingPolynomial    = 0x04C11DB7;
+   
    hcrc.Init.DefaultInitValueUse       = DEFAULT_INIT_VALUE_ENABLE;
+   //hcrc.Init.InitValue               = 0xFFFFFFFF;
+   
+   //hcrc.Init.CRCLength                 = CRC_POLYLENGTH_32B;
+   
    hcrc.Init.InputDataInversionMode    = CRC_INPUTDATA_INVERSION_NONE;
    hcrc.Init.OutputDataInversionMode   = CRC_OUTPUTDATA_INVERSION_DISABLE;
    hcrc.InputDataFormat                = CRC_INPUTDATA_FORMAT_BYTES;
@@ -450,10 +456,8 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    // crc check
    if( uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
    {
-      // set collision led
-      //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-      // start timer to reset collision led
-      //HAL_TIM_Base_Start_IT(&LedTimHandle);
+      static uint32_t crcresult;
+      crcresult = uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH-4));
       // start receive irq
       uart_receive( huart, rxBuffer, BUFFERLENGTH );
       colCounter++;
@@ -540,7 +544,7 @@ static void bus_timer_init( void )
    
    // configuration
    BusTimHandle.Instance               = TIM3;
-   BusTimHandle.Init.Period            = 0; // us
+   BusTimHandle.Init.Period            = 0; 
    BusTimHandle.Init.Prescaler         = uwPrescalerValue;
    BusTimHandle.Init.ClockDivision     = 0;
    BusTimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
@@ -597,7 +601,7 @@ void uart_ledTimerCallback( void )
 static void setRandomWait( void )
 {
    /* Set the Autoreload value */
-  TIM3->ARR = (uint32_t)(rand() % 1000)+300;
+  TIM3->ARR = (uint32_t)(rand() % 1000)+300;    // default for 10mbit: TIM3->ARR = (uint32_t)(rand() % 1000)+300;
   /* set counter value to 0 */
   TIM3->CNT = 0;
   /* start the timer */

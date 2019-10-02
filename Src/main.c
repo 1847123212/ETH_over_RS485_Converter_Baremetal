@@ -83,7 +83,7 @@ int main(void)
    // init buffer and start to reveive
    list_init();
    
-   // initialize th ethernet interface
+   // initialize the ethernet interface
    eth_init();
    
    // initialize the uart with rs485 transceiver

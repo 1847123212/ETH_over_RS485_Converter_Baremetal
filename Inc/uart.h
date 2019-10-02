@@ -49,7 +49,7 @@
                                              // Ethernet frame that carries an 
                                              // ICMP packet is 74 bytes.
                                              // +8 bytes for preamble & sfd
-#define MINSIZE                  ( PREAMBLESFDLENGTH+CRC32LENGTH )
+#define MINSIZE                  ( 64 )
 #define TYPEARP                  ( 0806 )
 #define ETHTYPEFIELDMSB          ( 12 )
 #define ETHTYPEFIELDLSB          ( 13 )
