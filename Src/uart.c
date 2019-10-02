@@ -434,30 +434,16 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
    
    // preamble check
-   preAmblePointer = rxBuffer;
-   for(uint8_t i=0; i<4; i++)
+   if(( memcmp( ( void * ) (rxBuffer+5), ( void * ) (preAmbleSFD+5), (PREAMBLESFDLENGTH-5)) != 0 ))
    {
-      if(*(preAmblePointer) == 0xAA)
-      {
-         if( memcmp( ( void * ) preAmblePointer, ( void * ) preAmbleSFD, PREAMBLESFDLENGTH) != 0 )
-         {
-            // start receive irq
-            uart_receive( huart, rxBuffer, BUFFERLENGTH );
-            return ;
-         }
-      }
-      else
-      {
-         preAmblePointer++;
-         frameSize--;    
-      }  
+      // start receive irq
+      uart_receive( huart, rxBuffer, BUFFERLENGTH );
+      return;
    }
    
    // crc check
-   if( uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
+   if( uart_calcCRC( (uint32_t*)(rxBuffer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
    {
-      static uint32_t crcresult;
-      crcresult = uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH-4));
       // start receive irq
       uart_receive( huart, rxBuffer, BUFFERLENGTH );
       colCounter++;
@@ -465,7 +451,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
 
    // create a new node in the list, with the received data
-   list_insertData( preAmblePointer, frameSize, UART_TO_ETH );
+   list_insertData( rxBuffer, frameSize, UART_TO_ETH );
    
    // start to receive again
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
