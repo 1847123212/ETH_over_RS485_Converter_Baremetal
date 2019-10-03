@@ -9,7 +9,7 @@
         <stlinkfoundProbes />
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>893219992</Checksum>
+        <Checksum>713400237</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
