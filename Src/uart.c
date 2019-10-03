@@ -226,6 +226,8 @@ void uart_output( uint8_t* buffer, uint16_t length )
 {
    static     uint8_t*  crcFragment;
    static     uint32_t  crc32;
+   
+   while(huart2.gState != HAL_UART_STATE_READY);
        
    // copy data into tx output buffer
    memcpy( &txBuffer[MACDSTFIELD], buffer, length );
@@ -281,7 +283,7 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
       while( timeoutFlag != (uint8_t)1  );
       timeoutFlag = 0;
    }
-   while( huart->gState != HAL_UART_STATE_READY && busIdleFlag != 1 );
+   while( busIdleFlag != 1 );
 
 
    // Clean & invalidate data cache
@@ -482,7 +484,7 @@ static void bus_timer_init( void )
 static void bus_uart_startRandomTimout( void )
 {
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(rand() % 1000)+500; // default for 10 mbit 1000+300
+   TIM3->ARR = (uint32_t)(rand() % 1000)+1000; // default for 10 mbit 1000+300
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
