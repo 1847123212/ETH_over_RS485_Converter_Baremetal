@@ -226,9 +226,6 @@ void uart_output( uint8_t* buffer, uint16_t length )
 {
    static     uint8_t*  crcFragment;
    static     uint32_t  crc32;
-   
-   // as long as the buffer is accessed by the peripheral, wait here!
-   while((&huart2)->gState != HAL_UART_STATE_READY);
        
    // copy data into tx output buffer
    memcpy( &txBuffer[MACDSTFIELD], buffer, length );
@@ -417,27 +414,15 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
    
    // preamble check
-   preAmblePointer = rxBuffer;
-   for(uint8_t i=0; i<4; i++)
+   if(( memcmp( ( void * ) (rxBuffer+5), ( void * ) (preAmbleSFD+5), (PREAMBLESFDLENGTH-5)) != 0 ))
    {
-      if(*(preAmblePointer) == 0xAA)
-      {
-         if( memcmp( ( void * ) preAmblePointer, ( void * ) preAmbleSFD, PREAMBLESFDLENGTH) != 0 )
-         {
-            // start receive irq
-            uart_receive( huart, rxBuffer, BUFFERLENGTH );
-            return ;
-         }
-      }
-      else
-      {
-         preAmblePointer++;
-         frameSize--;    
-      }  
+      // start receive irq
+      uart_receive( huart, rxBuffer, BUFFERLENGTH );
+      return;
    }
    
    // crc check
-   if( uart_calcCRC( (uint32_t*)(preAmblePointer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
+   if( uart_calcCRC( (uint32_t*)(rxBuffer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
    {
       // start receive irq
       uart_receive( huart, rxBuffer, BUFFERLENGTH );
@@ -446,7 +431,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
 
    // create a new node in the list, with the received data
-   list_insertData( preAmblePointer, frameSize, UART_TO_ETH );
+   list_insertData( rxBuffer, frameSize, UART_TO_ETH );
    
    // start to receive again
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
@@ -497,7 +482,7 @@ static void bus_timer_init( void )
 static void bus_uart_startRandomTimout( void )
 {
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(rand() % 5000)+500; // default for 10 mbit 1000+300
+   TIM3->ARR = (uint32_t)(rand() % 1000)+500; // default for 10 mbit 1000+300
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
