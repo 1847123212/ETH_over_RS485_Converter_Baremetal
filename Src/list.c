@@ -164,6 +164,7 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    if( newNode != NULL )
    {
       newNode->data = malloc(dataLength*sizeof(uint8_t));
+      __enable_irq();
    }
    else
    {
@@ -207,7 +208,7 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    tailNode->next = newNode;
    
    // enable all interrupts again
-   __enable_irq();
+   //__enable_irq();
    
    // increment list length
    dataPacketsIN++;

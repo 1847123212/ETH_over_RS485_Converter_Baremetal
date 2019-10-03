@@ -334,15 +334,18 @@ static void uart_receive( UART_HandleTypeDef *huart2, uint8_t *pData, uint16_t S
 {
    // wait until uart peripheral is ready
    while(huart2->gState != HAL_UART_STATE_READY);
+   //disable rx transmit interrupt
+   HAL_UART_DMAStop(huart2);
+   HAL_UART_Abort_IT(huart2);
    // RS485 set to listening
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
-   // enable idle line and rx interrupt
-   __HAL_UART_ENABLE_IT(huart2, UART_IT_IDLE);
-   __HAL_UART_ENABLE_IT(huart2, UART_IT_RXNE);
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
    // start receiving in interrupt mode
    HAL_UART_Receive_DMA(huart2, pData, Size);
+   // enable idle line and rx interrupt
+   __HAL_UART_ENABLE_IT(huart2, UART_IT_IDLE);
+   __HAL_UART_ENABLE_IT(huart2, UART_IT_RXNE);
 }
 
 //------------------------------------------------------------------------------

@@ -369,7 +369,7 @@ void eth_output( uint8_t* buffer, uint16_t length )
    static ETH_BufferTypeDef   Txbuffer;
    static uint32_t            eth_tx_err_counter = 0;
    
-   while(heth.gState != HAL_ETH_STATE_READY);
+   //while(heth.gState != HAL_ETH_STATE_READY);
    
    // Clean and Invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
