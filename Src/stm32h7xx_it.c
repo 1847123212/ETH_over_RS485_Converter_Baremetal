@@ -247,7 +247,11 @@ void USART2_IRQHandler(void)
          HAL_UART_IdleLnCallback(&huart2);
       }
    }else{
-      uart_customCallback();
+      // if rx interrupt, set rx idle flag
+      if( __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_RXNE ) != SET  )
+      {
+         uart_customCallback();
+      }
       // excecute HAL_UART_IRQHandler as usual
       HAL_UART_IRQHandler(&huart2);
    }
