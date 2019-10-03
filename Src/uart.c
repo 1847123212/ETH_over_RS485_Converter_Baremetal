@@ -587,7 +587,7 @@ void uart_ledTimerCallback( void )
 static void setRandomWait( void )
 {
    /* Set the Autoreload value */
-  TIM3->ARR = (uint32_t)(rand() % 1000)+300;    // default for 10mbit: TIM3->ARR = (uint32_t)(rand() % 1000)+300;
+  TIM3->ARR = (uint32_t)(rand() % 1000)+500;    // default for 10mbit: TIM3->ARR = (uint32_t)(rand() % 1000)+300;
   /* set counter value to 0 */
   TIM3->CNT = 0;
   /* start the timer */
