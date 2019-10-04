@@ -8,9 +8,9 @@
 ///
 /// \author    Nico Korn
 ///
-/// \version   0.1
+/// \version   0.2
 ///
-/// \date      20190124
+/// \date      10042019
 /// 
 /// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
 ///            all rights reserved.
@@ -210,6 +210,10 @@ void uart_init( void )
 /// \return    none
 static void crc_init(void)
 {
+   // init the clock
+   __HAL_RCC_CRC_CLK_ENABLE();
+   
+   // init the crc peripheral
    hcrc.Instance                       = CRC;
    hcrc.Init.DefaultPolynomialUse      = DEFAULT_POLYNOMIAL_ENABLE;
    hcrc.Init.DefaultInitValueUse       = DEFAULT_INIT_VALUE_ENABLE;
@@ -393,7 +397,6 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
 {
    static uint16_t    bytesLeft;
    static uint16_t    frameSize;
-   static uint8_t*    preAmblePointer;
    
    // set variables
    bytesLeft = __HAL_DMA_GET_COUNTER(huart->hdmarx);
@@ -526,3 +529,5 @@ uint8_t bus_uart_getRxbusIdleFlag( void )
 {
    return busIdleFlag;
 }
+
+/********************** (C) COPYRIGHT Reichle & De-Massari *****END OF FILE****/

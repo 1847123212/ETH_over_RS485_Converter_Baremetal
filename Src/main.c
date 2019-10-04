@@ -1,74 +1,61 @@
-/* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
-/* USER CODE END Header */
+// ****************************************************************************
+/// \file      main.c
+///
+/// \brief     main module
+///
+/// \details   Main module with the main, where the user code starts
+///
+/// \author    Nico Korn
+///
+/// \version   0.2
+///
+/// \date      10042019
+/// 
+/// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
+///            all rights reserved.
+///
+/// \pre       
+///
+/// \bug       
+///
+/// \warning   
+///
+/// \todo      
+///
+// ****************************************************************************
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "list.h"
 #include "eth.h"
+#include "led.h"
 #include "uart.h"
 #include <string.h>
 #include <stdlib.h>
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void CPU_CACHE_Enable(void);
-static void MX_GPIO_Init(void);
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
 
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
+// ----------------------------------------------------------------------------
+/// \brief     Main function
+///
+/// \param     none
+///
+/// \return    none
+int main( void )
 {
    // enable the CPU cache memory
    CPU_CACHE_Enable();
@@ -78,6 +65,9 @@ int main(void)
 
    // configure the system clock
    SystemClock_Config();
+   
+   // init the toggling status led
+   led_init();
 
    // init buffer and start to reveive
    list_init();
@@ -96,26 +86,25 @@ int main(void)
    }
 }
 
-/**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
+// ----------------------------------------------------------------------------
+/// \brief     System Clock Configuration
+///
+/// \param     none
+///
+/// \return    none
+void SystemClock_Config( void )
 {
    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
    
-   /** Supply configuration update enable 
-   */
+   // Supply configuration update enable 
    HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
-   /** Configure the main internal regulator output voltage 
-   */
+   // Configure the main internal regulator output voltage 
    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
    
    while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
-   /** Initializes the CPU, AHB and APB busses clocks 
-   */
+   // Initializes the CPU, AHB and APB busses clocks 
    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -132,8 +121,7 @@ void SystemClock_Config(void)
    {
       Error_Handler();
    }
-   /** Initializes the CPU, AHB and APB busses clocks 
-   */
+   // Initializes the CPU, AHB and APB busses clocks 
    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                                  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
                                  |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
@@ -157,25 +145,13 @@ void SystemClock_Config(void)
    }
 }
 
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-
-}
-
-/**
-  * @brief  CPU L1-Cache enable.
-  * @param  None
-  * @retval None
-  */
-static void CPU_CACHE_Enable(void)
+// ----------------------------------------------------------------------------
+/// \brief     CPU L1-Cache enable.
+///
+/// \param     none
+///
+/// \return    none
+static void CPU_CACHE_Enable( void )
 {
   /* Enable I-Cache */
   SCB_EnableICache();
@@ -184,33 +160,13 @@ static void CPU_CACHE_Enable(void)
   SCB_EnableDCache();
 }
 
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-   if( htim->Instance == TIM3 )   // bus access timer flag setter
-   {
-      //uart_setUartAccessFlag();
-      bus_uart_timeoutCallback();
-   }
-   if( htim->Instance == TIM4 )   // malloc fail led timer callback
-   {
-      list_ledTimerCallback();
-   }
-}
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
+// ----------------------------------------------------------------------------
+/// \brief     Error handler
+///
+/// \param     none
+///
+/// \return    none
+void Error_Handler( void )
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
@@ -219,13 +175,14 @@ void Error_Handler(void)
 }
 
 #ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+// ----------------------------------------------------------------------------
+/// \brief     Reports the name of the source file and the source line number
+///            where the assert_param error has occurred.
+///
+/// \param     [in]  pointer to the source file name
+///            [in]  assert_param error line source number
+///
+/// \return    none
 void assert_failed(uint8_t *file, uint32_t line)
 { 
   /* USER CODE BEGIN 6 */
@@ -235,4 +192,4 @@ void assert_failed(uint8_t *file, uint32_t line)
 }
 #endif /* USE_FULL_ASSERT */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/********************** (C) COPYRIGHT Reichle & De-Massari *****END OF FILE****/

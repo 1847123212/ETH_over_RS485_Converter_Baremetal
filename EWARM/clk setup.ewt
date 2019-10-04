@@ -1197,9 +1197,30 @@
             <name>User</name>
             <group>
                 <name>inc</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Inc\eth.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Inc\led.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Inc\list.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Inc\main.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Inc\stm32h7xx_hal_conf.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Inc\uart.h</name>
+                </file>
             </group>
             <file>
                 <name>$PROJ_DIR$\..\Src\eth.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\led.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\list.c</name>

@@ -308,7 +308,21 @@ void TIM5_IRQHandler(void)
   HAL_TIM_IRQHandler(&BTimeoutTimHandle);
 }
 
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
+// ----------------------------------------------------------------------------
+/// \brief     Period elapsed callback in non blocking mode
+///
+/// \param     none
+///
+/// \return    none
+void HAL_TIM_PeriodElapsedCallback( TIM_HandleTypeDef *htim )
+{
+   if( htim->Instance == TIM3 )   // bus access timer flag setter
+   {
+      bus_uart_timeoutCallback();
+   }
+   if( htim->Instance == TIM4 )   // malloc fail led timer callback
+   {
+      list_ledTimerCallback();
+   }
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
