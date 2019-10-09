@@ -188,11 +188,11 @@ void uart_init( void )
    __HAL_UART_CLEAR_IT(&huart2, UART_CLEAR_IDLEF);
 
    // set irq
-   HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(USART2_IRQn, 1, 0);
    HAL_NVIC_EnableIRQ(USART2_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 1, 0);
    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 1, 0);
    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
    
    // set preamble in the tx buffer
@@ -277,18 +277,17 @@ static uint32_t uart_calcCRC( uint32_t* dataPointer, uint32_t dataLength )
 /// \return    none
 static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size )
 {
-   // generate variable allready at the beginning of program run
+   // Error counter for debugging purposes
    static uint32_t   uart_tx_err_counter = 0;
 
    // start the random countdown to access the bus
    do
    {
       bus_uart_startRandomTimout();
-      while( timeoutFlag != (uint8_t)1  );
-      timeoutFlag = 0;
+      while( timeoutFlag != SET  );
+      timeoutFlag = RESET;
    }
-   while( busIdleFlag != 1 );
-
+   while( busIdleFlag != SET );
 
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
@@ -315,6 +314,8 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
 /// \return    none
 static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size )
 {
+   // Error counter for debugging purposes
+   static uint32_t   uart_rx_err_counter = 0;
    // wait until uart peripheral is ready
    while(huart->gState != HAL_UART_STATE_READY);
    //disable rx transmit interrupt
@@ -325,7 +326,10 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Si
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
    // start receiving in interrupt mode
-   HAL_UART_Receive_DMA(huart, pData, Size);
+   if(HAL_UART_Receive_DMA(huart, pData, Size) != HAL_OK)
+   {
+      uart_rx_err_counter++;
+   }
    // enable idle line and rx interrupt
    __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
    __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
@@ -503,7 +507,7 @@ static void bus_uart_startRandomTimout( void )
 void bus_uart_timeoutCallback( void )
 {
    // set the timeout flag to 1
-   timeoutFlag = 1;
+   timeoutFlag = SET;
    // stop the timer
    HAL_TIM_Base_Stop_IT(&BusTimHandle);
 }

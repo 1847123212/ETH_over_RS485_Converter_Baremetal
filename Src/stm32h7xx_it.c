@@ -253,9 +253,9 @@ void USART2_IRQHandler(void)
       {
          bus_uart_setRxIdleFlag(0);       // set not idle
       }
-      // excecute HAL_UART_IRQHandler as usual
-      HAL_UART_IRQHandler(&huart2);
    }
+   // excecute HAL_UART_IRQHandler as usual
+   HAL_UART_IRQHandler(&huart2);
 }
 
 /**
