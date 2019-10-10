@@ -47,7 +47,8 @@ static uint8_t                txBuffer[BUFFERLENGTH];
 static uint32_t               colCounter;
 
 static volatile uint8_t       timeoutFlag = 0;  
-static uint8_t                busIdleFlag = 1;
+static uint8_t                busRxIdleFlag = 1;
+static uint8_t                busTxIdleFlag = 1;
 
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
@@ -287,7 +288,7 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
       while( timeoutFlag != SET  );
       timeoutFlag = RESET;
    }
-   while( busIdleFlag != SET );
+   while( busRxIdleFlag != SET );
 
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
@@ -299,6 +300,7 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    HAL_UART_Abort_IT(huart);
    // RS485 drive enable -> write to the bus (listen not anymore possible at this moment)
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
+   busTxIdleFlag = RESET;
    // send the data
    if(HAL_UART_Transmit_DMA(huart, (uint8_t*)pData, Size) != HAL_OK )
    {
@@ -343,6 +345,8 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Si
 /// \return    none
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
+   // set bus tx idle flag
+   busTxIdleFlag = SET;
    // start to receive data
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
@@ -366,6 +370,7 @@ void HAL_UART_RxCpltCallback( UART_HandleTypeDef *huart )
 /// \return    none
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
+   /*
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
    
@@ -389,6 +394,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
    
    // start receive irq
    uart_receive( huart, rxBuffer, BUFFERLENGTH );
+*/
 }
 
 //------------------------------------------------------------------------------
@@ -520,7 +526,7 @@ void bus_uart_timeoutCallback( void )
 /// \return    none
 void bus_uart_setRxIdleFlag( uint8_t value )
 {
-   busIdleFlag = value;
+   busRxIdleFlag = value;
 }
 
 //------------------------------------------------------------------------------
@@ -529,9 +535,9 @@ void bus_uart_setRxIdleFlag( uint8_t value )
 /// \param     [in] 1 = idle, 0 = not idle
 ///
 /// \return    idle flag value
-uint8_t bus_uart_getRxbusIdleFlag( void )
+uint8_t bus_uart_getRxbusRxIdleFlag( void )
 {
-   return busIdleFlag;
+   return busRxIdleFlag;
 }
 
 /********************** (C) COPYRIGHT Reichle & De-Massari *****END OF FILE****/
