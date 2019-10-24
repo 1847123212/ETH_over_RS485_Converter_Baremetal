@@ -89,19 +89,10 @@ void uart_init( void )
    // setup hardware crc
    crc_init();
    colCounter = 0;
-
-   // LED for Collision indication
-   //led_gpio_init();
-   
-   // Timer for Collision LED Configuration
-   //led_timer_init();
    
    // Timer for bus access
    bus_timer_init();
-   
-   // Timer for bytetimout
-   //bus_bytetimeout_timer_init();
-   
+
    // RS485 CTS RTS GPIO Configuration
    // PD3     ------> CTS 
    // PD4     ------> RTS 
@@ -497,7 +488,7 @@ static void bus_timer_init( void )
 static void bus_uart_startRandomTimout( void )
 {
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(rand() % 500)+1000; // default for 10 mbit 1000+300
+   TIM3->ARR = (uint32_t)(rand() % 200)+300; // 0 fails was possible % 500)+300; // default for 10 mbit 1000+300
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer

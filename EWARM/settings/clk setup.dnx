@@ -6,10 +6,10 @@
         <stlinkResetStyle>0</stlinkResetStyle>
         <stlinkResetStrategy>2</stlinkResetStrategy>
         <stlinkserialNo>43013928</stlinkserialNo>
-        <stlinkfoundProbes>43013928:FFFFFFFF:</stlinkfoundProbes>
+        <stlinkfoundProbes>09241143:43013928:</stlinkfoundProbes>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>3607519183</Checksum>
+        <Checksum>556997034</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
