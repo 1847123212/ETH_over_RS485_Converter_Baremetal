@@ -61,14 +61,13 @@ TIM_HandleTypeDef             BusTimHandle;
 TIM_HandleTypeDef             BTimeoutTimHandle;
 
 // Private function prototypes ************************************************
-static void      crc_init          (void);
-static uint32_t  uart_calcCRC      ( uint32_t* dataPointer, uint32_t dataLength );
-static void      uart_send         ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
-static void      uart_receive      ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
-static void      bus_timer_init    ( void );
-static void      setRandomWait     ( void );
-static void      resetRandomWait   ( void );
-static void      bus_uart_startRandomTimout( void );
+static void      crc_init                    (void);
+static uint32_t  uart_calcCRC                ( uint32_t* dataPointer, uint32_t dataLength );
+static void      uart_send                   ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
+static void      uart_receive                ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
+static void      bus_timer_init              ( void );
+static void      bus_uart_startRandomTimout  ( void );
+static void    bus_uart_startTimeout         ( uint32_t timeout_0point1us );
 
 //------------------------------------------------------------------------------
 /// \brief     USART2 Initialization Function          
@@ -489,6 +488,22 @@ static void bus_uart_startRandomTimout( void )
 {
    // set a random number for the auto reload register
    TIM3->ARR = (uint32_t)(rand() % 200)+300; // 0 fails was possible % 500)+300; // default for 10 mbit 1000+300
+   // set counter value to 0
+   TIM3->CNT = 0;
+   // start the timer
+   HAL_TIM_Base_Start_IT(&BusTimHandle);
+}
+
+//------------------------------------------------------------------------------
+/// \brief     Set timeout function
+///
+/// \param     -
+///
+/// \return    none
+static void bus_uart_startTimeout( uint32_t timeout_0point1us )
+{
+   // set a random number for the auto reload register
+   TIM3->ARR = (uint32_t)timeout_0point1us;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
