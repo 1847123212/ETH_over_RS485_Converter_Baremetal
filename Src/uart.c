@@ -46,7 +46,7 @@ static uint8_t                txBuffer[BUFFERLENGTH];
 
 static uint32_t               colCounter;
 
-static volatile uint8_t       timeoutFlag = 0;  
+static volatile uint8_t       timeoutFlag = 1;  
 static uint8_t                busRxIdleFlag = 1;
 static uint8_t                busTxIdleFlag = 1;
 
@@ -66,8 +66,8 @@ static uint32_t  uart_calcCRC                ( uint32_t* dataPointer, uint32_t d
 static void      uart_send                   ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
 static void      uart_receive                ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
 static void      bus_timer_init              ( void );
-static void      bus_uart_startRandomTimout  ( void );
-static void    bus_uart_startTimeout         ( uint32_t timeout_0point1us );
+static void      bus_uart_startRandomTimeout  ( void );
+static void      bus_uart_startTimeout         ( uint32_t timeout_0point1us );
 
 //------------------------------------------------------------------------------
 /// \brief     USART2 Initialization Function          
@@ -271,14 +271,21 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    // Error counter for debugging purposes
    static uint32_t   uart_tx_err_counter = 0;
 
+   //while( huart->gState != HAL_UART_STATE_READY );
+   // if necessary, wait for interframegap end
+   while( timeoutFlag != SET  );
+   timeoutFlag = RESET;
+   
    // start the random countdown to access the bus
    do
    {
-      bus_uart_startRandomTimout();
+      bus_uart_startRandomTimeout();
       while( timeoutFlag != SET  );
       timeoutFlag = RESET;
    }
-   while( busRxIdleFlag != SET );
+   while( huart2.gState != HAL_UART_STATE_READY );
+
+   //while( busRxIdleFlag != SET );
 
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
@@ -337,6 +344,8 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
    // set bus tx idle flag
    busTxIdleFlag = SET;
+   // start interframe gap timout
+   bus_uart_startTimeout(5000);  // 0.1 us ticks
    // start to receive data
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
@@ -472,7 +481,7 @@ static void bus_timer_init( void )
    HAL_TIM_Base_Init(&BusTimHandle);
    
    // Set the TIM3 priority
-   HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(TIM3_IRQn, 1, 0);
    
    // Enable the TIMx global Interrupt
    HAL_NVIC_EnableIRQ(TIM3_IRQn);
@@ -484,10 +493,10 @@ static void bus_timer_init( void )
 /// \param     -
 ///
 /// \return    none
-static void bus_uart_startRandomTimout( void )
+static void bus_uart_startRandomTimeout( void )
 {
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(rand() % 200)+300; // 0 fails was possible % 500)+300; // default for 10 mbit 1000+300
+   TIM3->ARR = (uint32_t)(rand() % 100)+10; // 0 fails was possible % 500)+300; // default for 10 mbit 1000+300
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
@@ -495,7 +504,7 @@ static void bus_uart_startRandomTimout( void )
 }
 
 //------------------------------------------------------------------------------
-/// \brief     Set timeout function
+/// \brief     Set and start timeout function
 ///
 /// \param     -
 ///

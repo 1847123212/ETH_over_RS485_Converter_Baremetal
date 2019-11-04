@@ -249,7 +249,7 @@ void USART2_IRQHandler(void)
       }
    }else{
       // if rx interrupt, set rx idle flag
-      if( __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_RXNE ) != RESET  )
+      if( __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_RXFNE ) != RESET  )
       {
          bus_uart_setRxIdleFlag(0);       // set not idle
       }
