@@ -9,7 +9,7 @@
         <stlinkfoundProbes>09241143:43013928:</stlinkfoundProbes>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>3500173439</Checksum>
+        <Checksum>2796581104</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -107,8 +107,7 @@
         <mode>0</mode>
     </DisassembleMode>
     <Breakpoints2>
-        <Bp0>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\uart.c}.396.7" 0 0 1 "" 0 "" 0</Bp0>
-        <Count>1</Count>
+        <Count>0</Count>
     </Breakpoints2>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>

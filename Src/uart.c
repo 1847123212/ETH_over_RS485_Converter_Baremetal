@@ -271,7 +271,7 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    static uint32_t   uart_tx_err_counter = 0;
    
    // if necessary, wait for interframegap end
-   while( timeoutFlag != SET  );
+   while( timeoutFlag != SET );
    timeoutFlag = RESET;
    
    // start the random countdown to check if the bus is not occupied
@@ -311,9 +311,6 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Si
    // wait until uart peripheral is ready
    while(huart->gState != HAL_UART_STATE_READY);
    // RS485 set to listening
-   //__HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);
-   //__HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
-   //__HAL_UART_DISABLE_IT(huart, UART_IT_TXE);
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
