@@ -48,7 +48,6 @@ static uint32_t               colCounter;
 
 static volatile uint8_t       timeoutFlag = 1;  
 static uint8_t                busRxIdleFlag = 1;
-static uint8_t                busTxIdleFlag = 1;
 
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
@@ -290,12 +289,8 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    // start transmitting in interrupt mode
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
-   //disable rx receive interrupt
-   HAL_UART_DMAStop(huart);
-   HAL_UART_Abort_IT(huart);
    // RS485 drive enable -> write to the bus (listen not anymore possible at this moment)
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
-   busTxIdleFlag = RESET;
    // send the data
    if(HAL_UART_Transmit_DMA(huart, (uint8_t*)pData, Size) != HAL_OK )
    {
@@ -315,9 +310,6 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Si
    static uint32_t   uart_rx_err_counter = 0;
    // wait until uart peripheral is ready
    while(huart->gState != HAL_UART_STATE_READY);
-   //disable rx transmit interrupt
-   HAL_UART_DMAStop(huart);
-   HAL_UART_Abort_IT(huart);
    // RS485 set to listening
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
    // Clean & invalidate data cache
@@ -340,8 +332,6 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Si
 /// \return    none
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
-   // set bus tx idle flag
-   busTxIdleFlag = SET;
    // start interframe gap timeout
    bus_uart_startTimeout(100);  // 0.1 us ticks
    // start to receive data
