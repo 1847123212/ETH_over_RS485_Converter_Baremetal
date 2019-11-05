@@ -270,22 +270,20 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
 {
    // Error counter for debugging purposes
    static uint32_t   uart_tx_err_counter = 0;
-
-   //while( huart->gState != HAL_UART_STATE_READY );
+   
    // if necessary, wait for interframegap end
    while( timeoutFlag != SET  );
    timeoutFlag = RESET;
    
-   // start the random countdown to access the bus
+   // start the random countdown to check if the bus is not occupied
    do
    {
       bus_uart_startRandomTimeout();
       while( timeoutFlag != SET  );
       timeoutFlag = RESET;
    }
-   while( huart2.gState != HAL_UART_STATE_READY );
-
-   //while( busRxIdleFlag != SET );
+   //while( huart2.gState != HAL_UART_STATE_READY );
+   while( busRxIdleFlag != SET );
 
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
@@ -344,8 +342,8 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
    // set bus tx idle flag
    busTxIdleFlag = SET;
-   // start interframe gap timout
-   bus_uart_startTimeout(5000);  // 0.1 us ticks
+   // start interframe gap timeout
+   bus_uart_startTimeout(100);  // 0.1 us ticks
    // start to receive data
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
@@ -359,41 +357,6 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 /// \return    none
 void HAL_UART_RxCpltCallback( UART_HandleTypeDef *huart )
 {
-}
-
-//------------------------------------------------------------------------------
-/// \brief     Error callback       
-///
-/// \param     [in] UART_HandleTypeDef
-///
-/// \return    none
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
-   /*
-   __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
-   __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
-   
-   // reset errors
-   if (huart->Instance->ISR & USART_ISR_ORE) // Overrun Error
-   {
-      huart->Instance->ICR = USART_ICR_ORECF;
-   }
-   if (huart->Instance->ISR & USART_ISR_NE) // Noise Error
-   {
-      //huart->Instance->ICR = USART_ICR_NCF;
-   }
-   if (huart->Instance->ISR & USART_ISR_FE) // Framing Error
-   {    
-      huart->Instance->ICR = USART_ICR_FECF;
-   }
-   
-   // take action on the peripherals
-   HAL_UART_DMAStop(huart);
-   HAL_UART_Abort_IT(huart);
-   
-   // start receive irq
-   uart_receive( huart, rxBuffer, BUFFERLENGTH );
-*/
 }
 
 //------------------------------------------------------------------------------
@@ -496,7 +459,7 @@ static void bus_timer_init( void )
 static void bus_uart_startRandomTimeout( void )
 {
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(rand() % 100)+10; // 0 fails was possible % 500)+300; // default for 10 mbit 1000+300
+   TIM3->ARR = (uint32_t)(rand() % 500)+300; // 0 fails was possible % 500)+300; // default for 10 mbit 1000+300
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
