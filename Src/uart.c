@@ -178,11 +178,11 @@ void uart_init( void )
    __HAL_UART_CLEAR_IT(&huart2, UART_CLEAR_IDLEF);
 
    // set irq
-   HAL_NVIC_SetPriority(USART2_IRQn, 1, 0);
+   HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
    HAL_NVIC_EnableIRQ(USART2_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 1, 0);
+   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 1, 0);
+   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
    
    // set preamble in the tx buffer
