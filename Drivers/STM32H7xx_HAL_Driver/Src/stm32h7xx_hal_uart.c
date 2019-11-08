@@ -2238,7 +2238,7 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart)
     {
       __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_PEF);
 
-      huart->ErrorCode |= HAL_UART_ERROR_PE;
+      //huart->ErrorCode |= HAL_UART_ERROR_PE;
     }
 
     /* UART frame error interrupt occurred --------------------------------------*/
@@ -2246,7 +2246,7 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart)
     {
       __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_FEF);
 
-      huart->ErrorCode |= HAL_UART_ERROR_FE;
+      //huart->ErrorCode |= HAL_UART_ERROR_FE;
     }
 
     /* UART noise error interrupt occurred --------------------------------------*/
@@ -2254,7 +2254,7 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart)
     {
       __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_NEF);
 
-      huart->ErrorCode |= HAL_UART_ERROR_NE;
+      //huart->ErrorCode |= HAL_UART_ERROR_NE;
     }
 
     /* UART Over-Run interrupt occurred -----------------------------------------*/
@@ -2264,7 +2264,7 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart)
     {
       __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_OREF);
 
-      huart->ErrorCode |= HAL_UART_ERROR_ORE;
+      //huart->ErrorCode |= HAL_UART_ERROR_ORE;
     }
 
     /* Call UART Error Call back function if need be --------------------------*/
