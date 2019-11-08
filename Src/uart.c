@@ -268,7 +268,7 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    // Error counter for debugging purposes
    static uint32_t   uart_tx_err_counter = 0;
    
-   waitTime = 0;
+   waitTime = 0;  // for debugging
    // if necessary, wait for interframegap end
    //while( timeoutFlag != SET );
    //timeoutFlag = RESET;
