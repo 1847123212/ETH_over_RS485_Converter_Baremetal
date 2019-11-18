@@ -61,8 +61,8 @@ TIM_HandleTypeDef             BTimeoutTimHandle;
 // Private function prototypes ************************************************
 static void      crc_init                       (void);
 static uint32_t  uart_calcCRC                   ( uint32_t* dataPointer, uint32_t dataLength );
-static void      uart_send                      ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
-static void      uart_receive                   ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size );
+static void      uart_send                      ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length );
+static void      uart_receive                   ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length );
 static void      bus_timer_init                 ( void );
 static void      bus_uart_startRandomTimeout    ( void );
 static void      bus_uart_startTimeout          ( uint32_t timeout_0point1us );
@@ -216,30 +216,11 @@ static void crc_init(void)
 
 void uart_output( uint8_t* buffer, uint16_t length )
 {
-   static     uint8_t*  crcFragment;
-   static     uint32_t  crc32;
-   
+   // wait for the peripheral to be ready
    while(huart2.gState != HAL_UART_STATE_READY);
        
    // copy data into tx output buffer
    memcpy( &txBuffer[MACDSTFIELD], buffer, length );
-   
-   // calculate crc32 value
-   crc32 = uart_calcCRC( (uint32_t*)&txBuffer[MACDSTFIELD], (uint32_t)length );
-   
-   // append crc to the outputbuffer
-   crcFragment = (uint8_t*)&crc32;
-   
-   for( uint8_t i=0, j=3; i<4; i++,j-- )
-   {
-      txBuffer[MACDSTFIELD+length+i] = crcFragment[j];
-   }
-   
-   // add crc32 length to the total length
-   length += CRC32LENGTH;
-   
-   // add preamble/sfd length 
-   length += PREAMBLESFDLENGTH;
    
    // send the data in the buffer
    uart_send(&huart2, txBuffer, length);
@@ -260,31 +241,29 @@ static uint32_t uart_calcCRC( uint32_t* dataPointer, uint32_t dataLength )
 //------------------------------------------------------------------------------
 /// \brief     Function used to send data over uart           
 ///
-/// \param     -
+/// \param     [in] uart handler
+/// \param     [in] pointer to data buffer
+/// \param     [in] length of the buffer
 ///
 /// \return    none
-static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size )
+static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length )
 {
    // Error counter for debugging purposes
-   static uint32_t   uart_tx_err_counter = 0;
+   static uint32_t   uart_tx_err_counter;
+   static uint32_t   crc32;
+   static uint8_t*   crcFragment;
    
-   waitTime = 0;  // for debugging
    // if necessary, wait for interframegap end
-   //while( timeoutFlag != SET );
-   //timeoutFlag = RESET;
+   while( timeoutFlag != SET );
+   timeoutFlag = RESET;
    
    // start the random countdown to check if the bus is not occupied
-   do//while( busRxIdleFlag != SET && huart2.gState != HAL_UART_STATE_READY )
+   while( busRxIdleFlag != SET )
    {
       bus_uart_startRandomTimeout();
       while( timeoutFlag != SET  );
       timeoutFlag = RESET;
    }
-   //while( huart2.gState != HAL_UART_STATE_READY );
-   while( busRxIdleFlag != SET );
-
-   // Clean & invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
    
    // start transmitting in interrupt mode
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
@@ -293,8 +272,22 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
    // RS485 drive enable -> write to the bus (listen not anymore possible at this moment)
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
    
+   // calculate crc32 value
+   crc32 = uart_calcCRC( (uint32_t*)&pData[MACDSTFIELD], (uint32_t)length );
+   
+   // append crc to the outputbuffer
+   crcFragment = (uint8_t*)&crc32;
+   
+   for( uint8_t i=0, j=3; i<4; i++,j-- )
+   {
+      pData[MACDSTFIELD+length+i] = crcFragment[j];
+   }
+   
+   // Clean & invalidate data cache
+   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
+   
    // send the data
-   if(HAL_UART_Transmit_DMA(huart, (uint8_t*)pData, Size) != HAL_OK )
+   if(HAL_UART_Transmit_DMA(huart, (uint8_t*)pData, length+(uint16_t)PREAMBLESFDLENGTH+(uint16_t)CRC32LENGTH ) != HAL_OK )
    {
       uart_tx_err_counter++;
    }
@@ -306,26 +299,26 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size 
 /// \param     -
 ///
 /// \return    none
-static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size )
+static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length )
 {
    // Error counter for debugging purposes
    static uint32_t   uart_rx_err_counter = 0;
-   // clean buffer
-   for( uint16_t i=0; i<BUFFERLENGTH; i++)
-   {
-      rxBuffer[i] = 0xFF;
-   }
+
    // wait until uart peripheral is ready
    while(huart->gState != HAL_UART_STATE_READY);
+   
    // RS485 set to listening
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
+   
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
+   
    // start receiving in interrupt mode
-   if(HAL_UART_Receive_DMA(huart, pData, Size) != HAL_OK)
+   if(HAL_UART_Receive_DMA(huart, pData, length) != HAL_OK)
    {
       uart_rx_err_counter++;
    }
+   
    // enable idle line and rx interrupt
    __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
    __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
@@ -339,13 +332,12 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Si
 /// \return    none
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
-   // 
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);
-   // start interframe gap timeout
-   //bus_uart_startTimeout(100);  // 0.1 us ticks
    // start to receive data
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
+   // start interframe gap timeout
+   bus_uart_startTimeout(300);  // 0.1 us ticks
 }
 
 //------------------------------------------------------------------------------
@@ -392,9 +384,9 @@ void HAL_UART_AbortCpltCallback(UART_HandleTypeDef *UartHandle)
 void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
 {
    static uint16_t    bytesLeft;
-   static uint16_t    frameSize;
+   static uint16_t    framelength;
    
-   static uint16_t   framesizeError;
+   static uint16_t   framelengthError;
    static uint16_t   preAmbleError;
    static uint16_t   crcError;
    
@@ -408,13 +400,13 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
    
    // get message length
-   frameSize = BUFFERLENGTH - bytesLeft;
+   framelength = BUFFERLENGTH - bytesLeft;
    
    // abort if input data is 0 bytes in length or too long or too short for a ethernet frame
-   if( (frameSize == (uint16_t)0) || (frameSize > (uint16_t)(ETHSIZE+PREAMBLESFDLENGTH)) || (frameSize < (uint16_t)MINSIZE))
+   if( (framelength == (uint16_t)0) || (framelength > (uint16_t)(ETHSIZE+PREAMBLESFDLENGTH)) || (framelength < (uint16_t)MINSIZE))
    {
       // start receive irq
-      framesizeError++;
+      framelengthError++;
       uart_receive( huart, rxBuffer, BUFFERLENGTH );
       return;
    }
@@ -429,7 +421,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
    
    // crc check
-   if( uart_calcCRC( (uint32_t*)(rxBuffer+MACDSTFIELD), (uint32_t)(frameSize-PREAMBLESFDLENGTH) ) != 0 )
+   if( uart_calcCRC( (uint32_t*)(rxBuffer+MACDSTFIELD), (uint32_t)(framelength-PREAMBLESFDLENGTH) ) != 0 )
    {
       // start receive irq
       crcError++;
@@ -438,7 +430,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
 
    // create a new node in the list, with the received data
-   list_insertData( rxBuffer, frameSize, UART_TO_ETH );
+   list_insertData( rxBuffer, framelength, UART_TO_ETH );
    
    // start to receive again
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
@@ -483,11 +475,8 @@ static void bus_timer_init( void )
 /// \return    none
 static void bus_uart_startRandomTimeout( void )
 {
-   static uint16_t randomNumber;
    // set a random number for the auto reload register
-   randomNumber = (uint32_t)(rand() % 500)+300; // 0 fails was possible % 500)+300; // default for 10 mbit 1000+300
-   TIM3->ARR = randomNumber;
-   waitTime += randomNumber;
+   TIM3->ARR = (uint32_t)(rand() % 50)+10;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
