@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# IAR ELF Linker V8.32.1.169/W32 for ARM                  18/Nov/2019  12:31:15
+# IAR ELF Linker V8.32.1.169/W32 for ARM                  18/Nov/2019  13:12:27
 # Copyright 2007-2018 IAR Systems AB.
 #
 #    Output file  =  
@@ -10,7 +10,7 @@
 #        C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\clk
 #        setup\List\clk setup.map
 #    Command line =  
-#        -f C:\Users\nkorn\AppData\Local\Temp\EW60A9.tmp
+#        -f C:\Users\nkorn\AppData\Local\Temp\EW193F.tmp
 #        ("C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\clk
 #        setup\Obj\eth.o"
 #        "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\clk
@@ -668,7 +668,7 @@ HAL_UART_RxCpltCallback
                          0x800'32f9     0x2  Code  Gb  uart.o [1]
 HAL_UART_Transmit_DMA    0x800'0319    0x86  Code  Gb  stm32h7xx_hal_uart.o [1]
 HAL_UART_TxCpltCallback
-                         0x800'32c3    0x36  Code  Gb  uart.o [1]
+                         0x800'32c5    0x34  Code  Gb  uart.o [1]
 HEAP$$Base              0x2402'06f8           --   Gb  - Linker created -
 HEAP$$Limit             0x2407'e2f8           --   Gb  - Linker created -
 HardFault_Handler        0x800'5a6b     0x2  Code  Gb  stm32h7xx_it.o [1]
@@ -810,13 +810,13 @@ timeoutFlag             0x2400'0094     0x1  Data  Lc  uart.o [1]
 tmalloc_large            0x800'62c9   0x386  Code  Lc  dlmalloc.o [2]
 tmalloc_small            0x800'664f   0x200  Code  Lc  dlmalloc.o [2]
 txBuffer                0x2400'072c   0x640  Data  Lc  uart.o [1]
-uart_calcCRC             0x800'31b3     0xa  Code  Lc  uart.o [1]
-uart_init                0x800'2f77   0x212  Code  Gb  uart.o [1]
-uart_output              0x800'3189    0x2a  Code  Gb  uart.o [1]
-uart_receive             0x800'3271    0x4a  Code  Lc  uart.o [1]
+uart_calcCRC             0x800'31b5     0xa  Code  Lc  uart.o [1]
+uart_init                0x800'2f79   0x212  Code  Gb  uart.o [1]
+uart_output              0x800'318b    0x2a  Code  Gb  uart.o [1]
+uart_receive             0x800'3273    0x4a  Code  Lc  uart.o [1]
 uart_receive::uart_rx_err_counter
                         0x2400'12e8     0x4  Data  Lc  uart.o [1]
-uart_send                0x800'31bd    0xb4  Code  Lc  uart.o [1]
+uart_send                0x800'31bf    0xb4  Code  Lc  uart.o [1]
 uart_send::crc32        0x2400'0098     0x4  Data  Lc  uart.o [1]
 uart_send::uart_tx_err_counter
                         0x2400'00e8     0x4  Data  Lc  uart.o [1]

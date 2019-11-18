@@ -46,7 +46,6 @@ static uint8_t                txBuffer[BUFFERLENGTH];
 
 static volatile uint8_t       timeoutFlag = 1;  
 static uint8_t                busRxIdleFlag = 1;
-static uint16_t               waitTime;
 
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
@@ -337,7 +336,7 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
    // start to receive data
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
    // start interframe gap timeout
-   bus_uart_startTimeout(300);  // 0.1 us ticks
+   bus_uart_startTimeout(200);  // 0.1 us ticks
 }
 
 //------------------------------------------------------------------------------
