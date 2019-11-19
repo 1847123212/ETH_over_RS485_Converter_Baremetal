@@ -61,9 +61,10 @@ extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart2;
 extern ETH_HandleTypeDef heth;
-extern TIM_HandleTypeDef BusTimHandle;
+extern TIM_HandleTypeDef BusTimHandleTx;
+extern TIM_HandleTypeDef BusTimHandleRx;
 extern TIM_HandleTypeDef LedTimHandle;
-extern TIM_HandleTypeDef LedMallocTimHandle;
+extern TIM_HandleTypeDef LedTimHandle;
 extern TIM_HandleTypeDef BTimeoutTimHandle;
 /* USER CODE BEGIN EV */
 
@@ -285,7 +286,7 @@ void TIM2_IRQHandler(void)
   */
 void TIM3_IRQHandler(void)
 {
-  HAL_TIM_IRQHandler(&BusTimHandle);
+  HAL_TIM_IRQHandler(&BusTimHandleTx);
 }
 
 /**
@@ -295,7 +296,7 @@ void TIM3_IRQHandler(void)
   */
 void TIM4_IRQHandler(void)
 {
-  HAL_TIM_IRQHandler(&LedMallocTimHandle);
+  HAL_TIM_IRQHandler(&LedTimHandle);
 }
 
 /**
@@ -305,7 +306,7 @@ void TIM4_IRQHandler(void)
   */
 void TIM5_IRQHandler(void)
 {
-  HAL_TIM_IRQHandler(&BTimeoutTimHandle);
+  HAL_TIM_IRQHandler(&BusTimHandleRx);
 }
 
 // ----------------------------------------------------------------------------
@@ -318,11 +319,15 @@ void HAL_TIM_PeriodElapsedCallback( TIM_HandleTypeDef *htim )
 {
    if( htim->Instance == TIM3 )   // bus access timer flag setter
    {
-      bus_uart_timeoutCallback();
+      bus_uart_timeoutCallbackTx();
    }
    if( htim->Instance == TIM4 )   // malloc fail led timer callback
    {
       list_ledTimerCallback();
+   }
+   if( htim->Instance == TIM5 )   // bus access timer flag setter
+   {
+      bus_uart_timeoutCallbackRx();
    }
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

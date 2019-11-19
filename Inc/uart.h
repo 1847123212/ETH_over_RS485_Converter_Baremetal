@@ -81,6 +81,7 @@ void                 uart_customCallback        ( void );
 void                 uart_resetBytetimeout      ( void );
 void                 bus_uart_setRxIdleFlag     ( uint8_t value );
 uint8_t              bus_uart_getRxIdleFlag     ( void );
-void                 bus_uart_timeoutCallback   ( void );
+void                 bus_uart_timeoutCallbackTx ( void );
+void                 bus_uart_timeoutCallbackRx ( void );
 void send( void );
 #endif // __PCU_BUS_UART_H

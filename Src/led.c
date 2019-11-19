@@ -1,8 +1,8 @@
 // ****************************************************************************
 /// \file      led.c
 ///
-/// \brief     led module to init and provide controle functions to the status 
-///            led
+/// \brief     Led module to init and provide control functions to the status 
+///            led. The status led toggles its light regulary, 
 ///
 /// \details   -
 ///
@@ -30,7 +30,7 @@
 #include "main.h"
 
 // Global variables ***********************************************************
-TIM_HandleTypeDef    LedMallocTimHandle;
+TIM_HandleTypeDef    LedTimHandle;
 
 // Private types     **********************************************************
 
@@ -90,22 +90,22 @@ static void led_timer_init( void )
    __HAL_RCC_TIM4_CLK_ENABLE();
    
    // configuration
-   LedMallocTimHandle.Instance               = TIM4;
-   LedMallocTimHandle.Init.Period            = 9999;
-   LedMallocTimHandle.Init.Prescaler         = uwPrescalerValue;
-   LedMallocTimHandle.Init.ClockDivision     = 0;
-   LedMallocTimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
-   LedMallocTimHandle.Init.RepetitionCounter = 0;
-   HAL_TIM_Base_Init(&LedMallocTimHandle);
+   LedTimHandle.Instance               = TIM4;
+   LedTimHandle.Init.Period            = 9999;
+   LedTimHandle.Init.Prescaler         = uwPrescalerValue;
+   LedTimHandle.Init.ClockDivision     = 0;
+   LedTimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
+   LedTimHandle.Init.RepetitionCounter = 0;
+   HAL_TIM_Base_Init(&LedTimHandle);
    
    // Set the TIM2 priority
-   HAL_NVIC_SetPriority(TIM4_IRQn, 3, 0);
+   HAL_NVIC_SetPriority(TIM4_IRQn, 9, 0);
    
    // Enable the TIMx global Interrupt
    HAL_NVIC_EnableIRQ(TIM4_IRQn);
   
    // temporary led it blink
-   HAL_TIM_Base_Start_IT(&LedMallocTimHandle);
+   HAL_TIM_Base_Start_IT(&LedTimHandle);
 }
 
 //------------------------------------------------------------------------------

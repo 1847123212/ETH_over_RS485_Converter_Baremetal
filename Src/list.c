@@ -130,7 +130,7 @@ void list_manager( void )
       // decrement list length
       dataPacketsOUT++;
       listLength--;
-      bytesOUT += head->dataLength;
+      bytesOUT += head->dataLength; // note: this are the frame bytes without preamble and crc value
    }
 }
 
