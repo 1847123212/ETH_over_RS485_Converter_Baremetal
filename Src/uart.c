@@ -35,7 +35,7 @@
 #include "uart.h"
 
 // Private defines ************************************************************
-#define FRAMEGAPTIME   ( 600u ) // 0.1 us
+#define FRAMEGAPTIME   ( 1500u ) // 0.1 us
 
 // Private types     **********************************************************
 
@@ -341,7 +341,7 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
    // start to receive data
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
    // start interframe gap timeout
-   bus_uart_startTimeoutTx(FRAMEGAPTIME);  // 0.1 us ticks
+   bus_uart_startTimeoutTx(2*FRAMEGAPTIME);  // 0.1 us ticks
 }
 
 //------------------------------------------------------------------------------
