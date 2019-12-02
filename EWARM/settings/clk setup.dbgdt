@@ -896,7 +896,7 @@
                     <item>txBuffer</item>
                     <item>uart_rx_err_counter</item>
                     <item>uart_tx_err_counter</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>

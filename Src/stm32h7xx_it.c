@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "uart.h"
+#include "led.h"
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -321,9 +322,9 @@ void HAL_TIM_PeriodElapsedCallback( TIM_HandleTypeDef *htim )
    {
       bus_uart_timeoutCallbackTx();
    }
-   if( htim->Instance == TIM4 )   // malloc fail led timer callback
+   if( htim->Instance == TIM4 )   // led timer callback
    {
-      list_ledTimerCallback();
+      led_ledTimerCallback();
    }
    if( htim->Instance == TIM5 )   // bus access timer flag setter
    {

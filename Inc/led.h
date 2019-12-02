@@ -8,9 +8,9 @@
 ///
 /// \author    Nico Korn
 ///
-/// \version   0.2
+/// \version   0.3
 ///
-/// \date      10042019
+/// \date      02122019
 /// 
 /// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
 ///            all rights reserved.
@@ -36,7 +36,7 @@
 // Exported types *************************************************************
 
 // Exported functions *********************************************************
-void  list_ledTimerCallback   ( void );
+void  led_ledTimerCallback   ( void );
 void  led_init                ( void );
 
 #endif // __LED_H

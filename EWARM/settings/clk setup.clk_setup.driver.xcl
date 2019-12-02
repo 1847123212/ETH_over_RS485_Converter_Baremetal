@@ -6,13 +6,15 @@
 
 "-p" 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\arm\CONFIG\debugger\ST\STM32H743ZI.ddf" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.3\arm\CONFIG\debugger\ST\STM32H743ZI.ddf" 
 
 "--drv_verify_download" 
 
 "--semihosting" 
 
 "--device=STM32H743ZI" 
+
+"--drv_tpiu_regbase=0xE00E3002" 
 
 "--drv_interface=SWD" 
 

@@ -21,7 +21,6 @@ extern "C" {
 void            list_init                  ( void );
 void            list_manager               ( void );
 void            list_insertData            ( uint8_t* data, uint16_t dataLength, message_direction_t messageDirection );
-void            list_ledTimerCallback      ( void );
 #ifdef __cplusplus
 }
 #endif

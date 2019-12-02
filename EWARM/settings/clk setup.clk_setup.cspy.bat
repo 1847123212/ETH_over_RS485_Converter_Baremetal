@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.general.xcl" --backend -f "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.3\common\bin\cspybat" -f "D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.general.xcl" --backend -f "D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.2\common\bin\cspybat" -f "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.general.xcl" "--debug_file=%~1" --backend -f "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.3\common\bin\cspybat" -f "D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.general.xcl" "--debug_file=%~1" --backend -f "D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\settings\clk setup.clk_setup.driver.xcl" 
 
 @echo off 
 :end

@@ -7,9 +7,9 @@
 ///
 /// \author    Nico Korn
 ///
-/// \author    Nico Korn
+/// \version   0.3
 ///
-/// \version   0.2
+/// \date      02122019
 /// 
 /// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
 ///            all rights reserved.
