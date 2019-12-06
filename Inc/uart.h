@@ -7,9 +7,9 @@
 ///
 /// \author    Nico Korn
 ///
-/// \version   0.1
+/// \version   0.3
 ///
-/// \date      20190124
+/// \date      02122019
 /// 
 /// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
 ///            all rights reserved.
@@ -49,7 +49,7 @@
                                              // Ethernet frame that carries an 
                                              // ICMP packet is 74 bytes.
                                              // +8 bytes for preamble & sfd
-#define MINSIZE                  ( 64 )
+#define MINSIZE                  ( 25 )
 #define TYPEARP                  ( 0806 )
 #define ETHTYPEFIELDMSB          ( 12 )
 #define ETHTYPEFIELDLSB          ( 13 )
@@ -79,5 +79,9 @@ void                 uart_startBytetimeout      ( void );
 void                 uart_bytetimeoutTimerCallback( void );
 void                 uart_customCallback        ( void );
 void                 uart_resetBytetimeout      ( void );
+void                 bus_uart_setRxIdleFlag     ( uint8_t value );
+uint8_t              bus_uart_getRxIdleFlag     ( void );
+void                 bus_uart_timeoutCallbackTx ( void );
+void                 bus_uart_timeoutCallbackRx ( void );
 void send( void );
 #endif // __PCU_BUS_UART_H
