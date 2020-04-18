@@ -88,7 +88,7 @@
                 </option>
                 <option>
                     <name>OCLastSavedByProductVersion</name>
-                    <state>8.40.2.22864</state>
+                    <state>8.50.1.24770</state>
                 </option>
                 <option>
                     <name>UseFlashLoader</name>
@@ -1007,7 +1007,7 @@
             <name>STLINK_ID</name>
             <archiveVersion>2</archiveVersion>
             <data>
-                <version>6</version>
+                <version>7</version>
                 <wantNonLocal>1</wantNonLocal>
                 <debug>1</debug>
                 <option>
@@ -1123,7 +1123,7 @@
                 <option>
                     <name>CCSTLinkProbeList</name>
                     <version>1</version>
-                    <state>2</state>
+                    <state>3</state>
                 </option>
             </data>
         </settings>
@@ -1136,7 +1136,7 @@
                 <debug>1</debug>
                 <option>
                     <name>CThirdPartyDriverDll</name>
-                    <state>###Uninitialized###</state>
+                    <state>Browse to your third-party driver</state>
                 </option>
                 <option>
                     <name>CThirdPartyLogFileCheck</name>
@@ -1445,11 +1445,11 @@
                 <loadFlag>0</loadFlag>
             </plugin>
             <plugin>
-                <file>$TOOLKIT_DIR$\plugins\rtos\SMX\smxAwareIarArm8.ewplugin</file>
+                <file>$TOOLKIT_DIR$\plugins\rtos\SMX\smxAwareIarArm8b.ewplugin</file>
                 <loadFlag>0</loadFlag>
             </plugin>
             <plugin>
-                <file>$TOOLKIT_DIR$\plugins\rtos\SMX\smxAwareIarArm8BE.ewplugin</file>
+                <file>$TOOLKIT_DIR$\plugins\rtos\SMX\smxAwareIarArm8bBE.ewplugin</file>
                 <loadFlag>0</loadFlag>
             </plugin>
             <plugin>

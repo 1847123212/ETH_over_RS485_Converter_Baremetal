@@ -47,6 +47,7 @@
 void SystemClock_Config(void);
 static void CPU_CACHE_Enable(void);
 
+
 /* Private user code ---------------------------------------------------------*/
 
 // ----------------------------------------------------------------------------
@@ -137,8 +138,9 @@ void SystemClock_Config( void )
    {
       Error_Handler();
    }
-   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2;
+   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_RNG;
    PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
+   PeriphClkInitStruct.RngClockSelection = RCC_RNGCLKSOURCE_PLL;
    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
    {
       Error_Handler();

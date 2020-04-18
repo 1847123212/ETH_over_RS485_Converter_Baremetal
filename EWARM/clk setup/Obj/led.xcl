@@ -22,9 +22,9 @@ D:\GitHub\Netscale_72_SW_Networkbridge\EWARM/../Drivers/CMSIS/Include
 -I
 D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\..\Drivers\BSP\Components\lan8742
 -I
-C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.3\arm\inc
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc
 -I
-C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.3\arm\inc\c
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c
 -I
 D:\GitHub\Netscale_72_SW_Networkbridge\Inc
 -I
@@ -187,8 +187,8 @@ D:\GitHub\Netscale_72_SW_Networkbridge\Drivers\BSP\Components\lan8742
 -D__JMP_BUF_ELEMENT_TYPE__=unsigned long long int
 -D__JMP_BUF_NUM_ELEMENTS__=16
 -D__TID__=0xcf60
--D__VER__=8040002
--D__BUILD_NUMBER__=214
+-D__VER__=8050001
+-D__BUILD_NUMBER__=245
 -D__IAR_SYSTEMS_ICC__=9
 -D_MAX_ALIGNMENT=8
 -D__LITTLE_ENDIAN__=1
@@ -284,8 +284,8 @@ D:\GitHub\Netscale_72_SW_Networkbridge\Drivers\BSP\Components\lan8742
 -D__HAS_JOINED_TYPES__=1
 -D__HAS_LOCATED_DECLARATION__=1
 -D__HAS_LOCATED_WITH_INIT__=1
--D__IAR_COMPILERBASE__=656646
--D__IAR_COMPILERBASE_STR__=10.5.6.1181
+-D__IAR_COMPILERBASE__=656903
+-D__IAR_COMPILERBASE_STR__=10.6.7.1229
 -D__UNICODE_SOURCE_SUPPORTED__=1
 -D__VTABLE_MEM__=
 -D__PRAGMA_REDEFINE_EXTNAME=1
@@ -311,7 +311,7 @@ D:\GitHub\Netscale_72_SW_Networkbridge\Drivers\BSP\Components\lan8742
 -D__cpp_unicode_literals=200710L
 -D__cpp_static_assert=200410L
 -D__EDG__=1
--D__EDG_VERSION__=500
+-D__EDG_VERSION__=501
 -D__EDG_SIZE_TYPE__=unsigned int
 -D__EDG_PTRDIFF_TYPE__=int
 -D__EDG_DELTA_TYPE=int
@@ -332,9 +332,9 @@ D:\GitHub\Netscale_72_SW_Networkbridge\Drivers\BSP\Components\lan8742
 -D__EDG_INT128_EXTENSIONS_ALLOWED=0
 -DUSE_HAL_DRIVER=1
 -DSTM32H743xx=1
--D_DLIB_CONFIG_FILE_HEADER_NAME="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.3\\arm\\inc\\c\\DLib_Config_Full.h"
--D_DLIB_CONFIG_FILE_STRING="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.3\\arm\\inc\\c\\DLib_Config_Full.h"
--D__VERSION__="IAR ANSI C/C++ Compiler V8.40.2.214/W32 for ARM"
+-D_DLIB_CONFIG_FILE_HEADER_NAME="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c\DLib_Config_Full.h"
+-D_DLIB_CONFIG_FILE_STRING="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.4\\arm\\inc\\c\\DLib_Config_Full.h"
+-D__VERSION__="IAR ANSI C/C++ Compiler V8.50.1.245/W32 for ARM"
 -D_VA_DEFINED=
 -D_VA_LIST=struct __va_list
 -D__ICCARM_OLD_DEFINED_VAARGS__=1

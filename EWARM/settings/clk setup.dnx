@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <settings>
     <StLinkDriver>
-        <stlinkserialNo>43013928</stlinkserialNo>
-        <stlinkfoundProbes>43013928:FFFFFFFF:</stlinkfoundProbes>
-        <stlinkResetStyle>0</stlinkResetStyle>
-        <stlinkResetStrategy>2</stlinkResetStrategy>
         <CStepIntDis>_ 0</CStepIntDis>
         <LeaveTargetRunning>_ 0</LeaveTargetRunning>
+        <stlinkResetStyle>0</stlinkResetStyle>
+        <stlinkResetStrategy>2</stlinkResetStrategy>
+        <stlinkserialNo>001F00323137511839383538</stlinkserialNo>
+        <stlinkfoundProbes />
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>2275373432</Checksum>
+        <Checksum>2628072730</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -32,8 +32,8 @@
         <ByteLimit>50</ByteLimit>
     </Stack>
     <Disassembly>
-        <InstrCount>0</InstrCount>
         <MixedMode>1</MixedMode>
+        <InstrCount>0</InstrCount>
     </Disassembly>
     <CallStack>
         <ShowArgs>0</ShowArgs>
@@ -61,6 +61,10 @@
         <Fmt1>UART_HandleTypeDef-RxState	4	0</Fmt1>
         <Fmt2>UART_HandleTypeDef-gState	4	0</Fmt2>
     </struct_types>
+    <Registers>
+        <regBase0>TIM3_ARR 10</regBase0>
+        <regBase1>TIM3_CNT 10</regBase1>
+    </Registers>
     <Trace2>
         <Enabled>0</Enabled>
         <ShowSource>0</ShowSource>
@@ -106,15 +110,23 @@
         <ShowTimeSum>1</ShowTimeSum>
         <SumSortOrder>0</SumSortOrder>
     </EventLog>
-    <TermIOLog>
-        <LoggingEnabled>_ 0</LoggingEnabled>
-        <LogFile>_ ""</LogFile>
-    </TermIOLog>
+    <DisassembleMode>
+        <mode>0</mode>
+    </DisassembleMode>
+    <Breakpoints2>
+        <Count>0</Count>
+    </Breakpoints2>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
         <Category>_ 0</Category>
     </LogFile>
+    <Aliases>
+        <A0>_ "C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\startup_stm32h743xx.s" "D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\startup_stm32h743xx.s"</A0>
+        <A1>_ "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_crc_ex.c" "D:\GitHub\Netscale_72_SW_Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_crc_ex.c"</A1>
+        <Count>2</Count>
+        <SuppressDialog>1</SuppressDialog>
+    </Aliases>
     <DriverProfiling>
         <Enabled>0</Enabled>
         <Mode>3</Mode>
@@ -128,16 +140,8 @@
     <CallStackStripe>
         <ShowTiming>1</ShowTiming>
     </CallStackStripe>
-    <DisassembleMode>
-        <mode>0</mode>
-    </DisassembleMode>
-    <Breakpoints2>
-        <Count>0</Count>
-    </Breakpoints2>
-    <Aliases>
-        <A0>_ "C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\startup_stm32h743xx.s" "D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\startup_stm32h743xx.s"</A0>
-        <A1>_ "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_crc_ex.c" "D:\GitHub\Netscale_72_SW_Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_crc_ex.c"</A1>
-        <Count>2</Count>
-        <SuppressDialog>0</SuppressDialog>
-    </Aliases>
+    <TermIOLog>
+        <LoggingEnabled>_ 0</LoggingEnabled>
+        <LogFile>_ ""</LogFile>
+    </TermIOLog>
 </settings>

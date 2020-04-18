@@ -2,9 +2,9 @@
 
 
 #Abbreviations
-cc = C$:\Program$ Files$ (x86)\IAR$ Systems\Embedded$ Workbench$ 8.3\common\bin\SourceIndexer.exe
-ll = C$:\Program$ Files$ (x86)\IAR$ Systems\Embedded$ Workbench$ 8.3\common\bin\PbdLink.exe
-bd = C$:\Program$ Files$ (x86)\IAR$ Systems\Embedded$ Workbench$ 8.3\common\bin\makeBrowseData.exe
+cc = C$:\Program$ Files$ (x86)\IAR$ Systems\Embedded$ Workbench$ 8.4\common\bin\SourceIndexer.exe
+ll = C$:\Program$ Files$ (x86)\IAR$ Systems\Embedded$ Workbench$ 8.4\common\bin\PbdLink.exe
+bd = C$:\Program$ Files$ (x86)\IAR$ Systems\Embedded$ Workbench$ 8.4\common\bin\makeBrowseData.exe
 
 
 
@@ -48,6 +48,7 @@ build stm32h7xx_hal_pwr.pbi : index stm32h7xx_hal_pwr.xcl
 build stm32h7xx_hal_pwr_ex.pbi : index stm32h7xx_hal_pwr_ex.xcl
 build stm32h7xx_hal_rcc.pbi : index stm32h7xx_hal_rcc.xcl
 build stm32h7xx_hal_rcc_ex.pbi : index stm32h7xx_hal_rcc_ex.xcl
+build stm32h7xx_hal_rng.pbi : index stm32h7xx_hal_rng.xcl
 build stm32h7xx_hal_tim.pbi : index stm32h7xx_hal_tim.xcl
 build stm32h7xx_hal_tim_ex.pbi : index stm32h7xx_hal_tim_ex.xcl
 build stm32h7xx_hal_uart.pbi : index stm32h7xx_hal_uart.xcl
@@ -56,8 +57,8 @@ build clk$ setup_part0.pbi : link eth.pbi led.pbi list.pbi main.pbi stm32h7xx_ha
 build clk$ setup_part1.pbi : link uart.pbi system_stm32h7xx.pbi lan8742.pbi stm32h7xx_hal.pbi stm32h7xx_hal_cortex.pbi stm32h7xx_hal_crc.pbi
 build clk$ setup_part2.pbi : link stm32h7xx_hal_crc_ex.pbi stm32h7xx_hal_dma.pbi stm32h7xx_hal_dma_ex.pbi stm32h7xx_hal_eth.pbi stm32h7xx_hal_eth_ex.pbi stm32h7xx_hal_flash.pbi
 build clk$ setup_part3.pbi : link stm32h7xx_hal_flash_ex.pbi stm32h7xx_hal_gpio.pbi stm32h7xx_hal_hsem.pbi stm32h7xx_hal_i2c.pbi stm32h7xx_hal_i2c_ex.pbi stm32h7xx_hal_mdma.pbi
-build clk$ setup_part4.pbi : link stm32h7xx_hal_pwr.pbi stm32h7xx_hal_pwr_ex.pbi stm32h7xx_hal_rcc.pbi stm32h7xx_hal_rcc_ex.pbi stm32h7xx_hal_tim.pbi stm32h7xx_hal_tim_ex.pbi
-build clk$ setup_part5.pbi : link stm32h7xx_hal_uart.pbi stm32h7xx_hal_uart_ex.pbi
+build clk$ setup_part4.pbi : link stm32h7xx_hal_pwr.pbi stm32h7xx_hal_pwr_ex.pbi stm32h7xx_hal_rcc.pbi stm32h7xx_hal_rcc_ex.pbi stm32h7xx_hal_rng.pbi stm32h7xx_hal_tim.pbi
+build clk$ setup_part5.pbi : link stm32h7xx_hal_tim_ex.pbi stm32h7xx_hal_uart.pbi stm32h7xx_hal_uart_ex.pbi
 build clk$ setup.pbd : link clk$ setup_part0.pbi clk$ setup_part1.pbi clk$ setup_part2.pbi clk$ setup_part3.pbi clk$ setup_part4.pbi clk$ setup_part5.pbi
 build clk$ setup.pbw : browsedata clk$ setup.pbd
 
