@@ -35,7 +35,7 @@
 #include "uart.h"
 
 // Private defines ************************************************************
-#define FRAMEGAPTIME   ( 500u ) // 1=0.1 us
+#define FRAMEGAPTIME   ( 1000u ) // 1=0.1 us
 
 // Private types     **********************************************************
 
@@ -44,9 +44,9 @@ static const uint8_t          preAmbleSFD[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xA
 static uint8_t                rxBuffer[BUFFERLENGTH];
 static uint8_t                txBuffer[BUFFERLENGTH];
 
-static volatile FlagStatus    timeoutFlagTx = SET;  
-static volatile FlagStatus    timeoutFlagRx = SET;  
-static FlagStatus             busRxIdleFlag = SET;
+static volatile FlagStatus    randomTimeoutFlag = SET;  
+static volatile FlagStatus    framegapTimeoutFlag = SET;  
+static volatile FlagStatus    txCplt = SET;
 
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
@@ -59,16 +59,13 @@ TIM_HandleTypeDef             BusTimHandleRx;
 RNG_HandleTypeDef             RngHandle;
 
 // Private function prototypes ************************************************
-static void      crc_init                       (void);
+static void      crc_init                       ( void );
 static uint32_t  uart_calcCRC                   ( uint32_t* dataPointer, uint32_t dataLength );
 static void      uart_send                      ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length );
 static void      uart_receive                   ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length );
-static void      bus_txTimer_init               ( void );
-static void      bus_uart_startRandomTimeoutTx  ( void );
-static void      bus_uart_startTimeoutTx        ( uint32_t timeout_0point1us );
-static void      bus_rxTimer_init               ( void );
-static void      bus_uart_startRandomTimeoutRx  ( void );
-static void      bus_uart_startTimeoutRx        ( uint32_t timeout_0point1us );
+static void      bus_randomTimer_init           ( void );
+static void      bus_uart_startRandomTimeout    ( void );
+static void      bus_framegapTimer_init         ( void );
 static void      bus_uart_rng_init              ( void );
 static uint32_t  bus_uart_getRandomNumber       ( void );
 
@@ -95,8 +92,8 @@ void uart_init( void )
    bus_uart_rng_init();
 
    // Timer for bus access
-   bus_txTimer_init();
-   bus_rxTimer_init();
+   bus_randomTimer_init();
+   bus_framegapTimer_init();
 
    // RS485 CTS RTS GPIO Configuration
    // PD3     ------> CTS 
@@ -226,7 +223,8 @@ static void crc_init(void)
 void uart_output( uint8_t* buffer, uint16_t length )
 {
    // wait for the peripheral to be ready
-   while(huart2.gState != HAL_UART_STATE_READY);
+   while( txCplt != SET );
+   txCplt = RESET;
        
    // copy data into tx output buffer
    memcpy( &txBuffer[MACDSTFIELD], buffer, length );
@@ -262,26 +260,6 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t lengt
    static uint32_t   crc32;
    static uint8_t*   crcFragment;
    
-   // if necessary, wait for interframegap end
-   while( timeoutFlagTx != SET && timeoutFlagRx != SET );
-   timeoutFlagTx = RESET;
-   timeoutFlagRx = RESET;
-   
-   // start the random countdown to check if the bus is not occupied
-   do
-   {
-      bus_uart_startRandomTimeoutTx();
-      while( timeoutFlagTx != SET  );
-      timeoutFlagTx = RESET;
-   }while( busRxIdleFlag != SET );
-   
-   // start transmitting in interrupt mode
-   __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
-   __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
-   
-   // RS485 drive enable -> write to the bus (listen not anymore possible at this moment)
-   HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
-   
    // calculate crc32 value
    crc32 = uart_calcCRC( (uint32_t*)&pData[MACDSTFIELD], (uint32_t)length );
    
@@ -292,6 +270,25 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t lengt
    {
       pData[MACDSTFIELD+length+i] = crcFragment[j];
    }
+   
+   // if necessary, wait for interframegap end
+   while( framegapTimeoutFlag != SET );
+   
+   // start the random countdown to check if the bus is not occupied
+   do
+   {
+      bus_uart_startRandomTimeout();
+      while( randomTimeoutFlag != SET );
+   }while( framegapTimeoutFlag != SET );
+   
+   // switch the RS485 transceiver into transmit mode
+   HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
+   
+   // start transmitting in interrupt mode
+   HAL_UART_DMAStop(huart);
+   HAL_UART_Abort_IT(huart);
+   __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
+   __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
    
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
@@ -312,7 +309,7 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t lengt
 static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length )
 {
    // Error counter for debugging purposes
-   static uint32_t   uart_rx_err_counter = 0;
+   static uint32_t   uart_rx_err_counter;
 
    // wait until uart peripheral is ready
    while(huart->gState != HAL_UART_STATE_READY);
@@ -323,15 +320,15 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t le
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
    
+   // enable idle line and rx interrupt
+   __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
+   __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
+   
    // start receiving in interrupt mode
    if(HAL_UART_Receive_DMA(huart, pData, length) != HAL_OK)
    {
       uart_rx_err_counter++;
    }
-   
-   // enable idle line and rx interrupt
-   __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
-   __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
 }
 
 //------------------------------------------------------------------------------
@@ -344,10 +341,10 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);
+   txCplt = SET;
+   
    // start to receive data
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
-   // start interframe gap timeout
-   bus_uart_startTimeoutTx(FRAMEGAPTIME);  // 0.1 us ticks
 }
 
 //------------------------------------------------------------------------------
@@ -393,18 +390,11 @@ void HAL_UART_AbortCpltCallback(UART_HandleTypeDef *UartHandle)
 /// \return    none
 void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
 {
-   static uint16_t    bytesLeft;
    static uint16_t    framelength;
    
    static uint16_t   framelengthError;
    static uint16_t   preAmbleError;
    static uint16_t   crcError;
-   
-   // set variables
-   bytesLeft = __HAL_DMA_GET_COUNTER(huart->hdmarx);
-   
-   // start interframe gap timeout (test)
-   bus_uart_startTimeoutRx(FRAMEGAPTIME);  // 0.1 us ticks
    
    // take action on the peripherals
    HAL_UART_DMAStop(huart);
@@ -413,7 +403,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
    
    // get message length
-   framelength = BUFFERLENGTH - bytesLeft;
+   framelength = BUFFERLENGTH - __HAL_DMA_GET_COUNTER(huart->hdmarx);
    
    // abort if input data is 0 bytes in length or too long or too short for a ethernet frame
    if( (framelength == (uint16_t)0) || (framelength > (uint16_t)(ETHSIZE+PREAMBLESFDLENGTH)) || (framelength < (uint16_t)MINSIZE))
@@ -425,12 +415,12 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
    
    // preamble check
-   if(( memcmp( ( void * ) (rxBuffer+5), ( void * ) (preAmbleSFD+5), (PREAMBLESFDLENGTH-5)) != 0 ))
+   if(( memcmp( ( void * ) (rxBuffer), ( void * ) (preAmbleSFD), (PREAMBLESFDLENGTH)) != 0 ))
    {
       // start receive irq
       preAmbleError++;
-      uart_receive( huart, rxBuffer, BUFFERLENGTH );
-      return;
+      //uart_receive( huart, rxBuffer, BUFFERLENGTH );
+      //return;
    }
    
    // crc check
@@ -455,7 +445,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
 /// \param     none
 ///
 /// \return    none
-static void bus_txTimer_init( void )
+static void bus_randomTimer_init( void )
 {
    // set prescaler to 0.1 us ticks
    uint32_t uwPrescalerValue = (uint32_t)(120000000 / (10000000)) - 1;
@@ -474,7 +464,7 @@ static void bus_txTimer_init( void )
    HAL_TIM_Base_Init(&BusTimHandleTx);
    
    // Set the TIM3 priority
-   HAL_NVIC_SetPriority(TIM3_IRQn, 0, 1);
+   HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
    
    // Enable the TIMx global Interrupt
    HAL_NVIC_EnableIRQ(TIM3_IRQn);
@@ -486,26 +476,12 @@ static void bus_txTimer_init( void )
 /// \param     -
 ///
 /// \return    none
-static void bus_uart_startRandomTimeoutTx( void )
+inline static void bus_uart_startRandomTimeout( void )
 {
+   // reset the flag
+   randomTimeoutFlag = RESET;
    // set a random number for the auto reload register
    TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 1000)+10;
-   // set counter value to 0
-   TIM3->CNT = 0;
-   // start the timer
-   HAL_TIM_Base_Start_IT(&BusTimHandleTx);
-}
-
-//------------------------------------------------------------------------------
-/// \brief     Starts the timer with a defined value
-///
-/// \param     [in] timer value for the auto reload register
-///
-/// \return    none
-static void bus_uart_startTimeoutTx( uint32_t timeout_0point1us )
-{
-   // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)timeout_0point1us;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
@@ -518,10 +494,10 @@ static void bus_uart_startTimeoutTx( uint32_t timeout_0point1us )
 /// \param     -
 ///
 /// \return    none
-void bus_uart_timeoutCallbackTx( void )
+inline void bus_uart_randomTimeoutCallback( void )
 {
    // set the timeout flag to 1
-   timeoutFlagTx = SET;
+   randomTimeoutFlag = SET;
    // stop the timer
    HAL_TIM_Base_Stop_IT(&BusTimHandleTx);
 }
@@ -532,7 +508,7 @@ void bus_uart_timeoutCallbackTx( void )
 /// \param     none
 ///
 /// \return    none
-static void bus_rxTimer_init( void )
+static void bus_framegapTimer_init( void )
 {
    // set prescaler to 0.1 us ticks
    uint32_t uwPrescalerValue = (uint32_t)(120000000 / (10000000)) - 1;
@@ -542,7 +518,7 @@ static void bus_rxTimer_init( void )
    
    // configuration
    BusTimHandleRx.Instance               = TIM5;
-   BusTimHandleRx.Init.Period            = 0; 
+   BusTimHandleRx.Init.Period            = FRAMEGAPTIME; 
    BusTimHandleRx.Init.Prescaler         = uwPrescalerValue;
    BusTimHandleRx.Init.ClockDivision     = 0;
    BusTimHandleRx.Init.CounterMode       = TIM_COUNTERMODE_UP;
@@ -551,26 +527,10 @@ static void bus_rxTimer_init( void )
    HAL_TIM_Base_Init(&BusTimHandleRx);
    
    // Set the TIM3 priority
-   HAL_NVIC_SetPriority(TIM5_IRQn, 0, 1);
+   HAL_NVIC_SetPriority(TIM5_IRQn, 0, 0);
    
    // Enable the TIMx global Interrupt
    HAL_NVIC_EnableIRQ(TIM5_IRQn);
-}
-
-//------------------------------------------------------------------------------
-/// \brief     Starts the timer with a random value
-///
-/// \param     -
-///
-/// \return    none
-static void bus_uart_startRandomTimeoutRx( void )
-{
-   // set a random number for the auto reload register
-   TIM5->ARR = (uint32_t)(bus_uart_getRandomNumber() % 1000)+10;
-   // set counter value to 0
-   TIM5->CNT = 0;
-   // start the timer
-   HAL_TIM_Base_Start_IT(&BusTimHandleRx);
 }
 
 //------------------------------------------------------------------------------
@@ -579,14 +539,19 @@ static void bus_uart_startRandomTimeoutRx( void )
 /// \param     [in] timer value for the auto reload register
 ///
 /// \return    none
-static void bus_uart_startTimeoutRx( uint32_t timeout_0point1us )
+inline void bus_uart_startFramegap( void )
 {
-   // set a random number for the auto reload register
-   TIM5->ARR = (uint32_t)timeout_0point1us;
    // set counter value to 0
    TIM5->CNT = 0;
-   // start the timer
-   HAL_TIM_Base_Start_IT(&BusTimHandleRx);
+   if( framegapTimeoutFlag != RESET )
+   {
+      // reset timeout flag
+      framegapTimeoutFlag = RESET;
+      // set auto reload register
+      TIM5->ARR = (uint32_t)FRAMEGAPTIME;
+      // start the timer
+      HAL_TIM_Base_Start_IT(&BusTimHandleRx);
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -595,36 +560,13 @@ static void bus_uart_startTimeoutRx( uint32_t timeout_0point1us )
 /// \param     -
 ///
 /// \return    none
-void bus_uart_timeoutCallbackRx( void )
+inline void bus_uart_framegapTimeoutCallback( void )
 {
    // set the timeout flag to 1
-   timeoutFlagRx = SET;
+   framegapTimeoutFlag = SET;
    // stop the timer
    HAL_TIM_Base_Stop_IT(&BusTimHandleRx);
 }
-
-//------------------------------------------------------------------------------
-/// \brief     Set the rx idle flag    
-///
-/// \param     [in] 1 = idle, 0 = not idle
-///
-/// \return    none
-void bus_uart_setRxIdleFlag( FlagStatus value )
-{
-   busRxIdleFlag = value;
-}
-
-//------------------------------------------------------------------------------
-/// \brief     Get the rx idle flag    
-///
-/// \param     -
-///
-/// \return    idle flag value
-FlagStatus bus_uart_getRxbusRxIdleFlag( void )
-{
-   return busRxIdleFlag;
-}
-
 
 // ----------------------------------------------------------------------------
 /// \brief     random number generator init

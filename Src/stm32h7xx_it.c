@@ -240,6 +240,16 @@ void DMA1_Stream1_IRQHandler(void)
   */
 void USART2_IRQHandler(void)
 {
+   // excecute HAL_UART_IRQHandler as usual
+   HAL_UART_IRQHandler(&huart2);
+   // Framegaptimer
+   //if(   __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_RXNE ) != RESET 
+   //   || __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_TXE ) != RESET )
+   //   || __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_IDLE) != RESET )
+   //{
+      bus_uart_startFramegap();
+   //}
+   
    // check for idle line detection interrupt
 	if(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE) != RESET){
       __HAL_UART_CLEAR_IDLEFLAG(&huart2);
@@ -247,21 +257,8 @@ void USART2_IRQHandler(void)
          __HAL_UART_CLEAR_IT(&huart2, UART_CLEAR_IDLEF);
          // call idle line callback
          HAL_UART_IdleLnCallback(&huart2);
-         bus_uart_setRxIdleFlag(SET);    // set idle
-      }
-   }else{
-      // if rx interrupt, set rx idle flag
-      if( __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_RXFNE ) != RESET  )
-      {
-         bus_uart_setRxIdleFlag(RESET);    // set not idle
-      }
-      else
-      {
-         bus_uart_setRxIdleFlag(SET);    // set idle
       }
    }
-   // excecute HAL_UART_IRQHandler as usual
-   HAL_UART_IRQHandler(&huart2);
 }
 
 /**
@@ -324,7 +321,7 @@ void HAL_TIM_PeriodElapsedCallback( TIM_HandleTypeDef *htim )
 {
    if( htim->Instance == TIM3 )   // bus access timer flag setter
    {
-      bus_uart_timeoutCallbackTx();
+      bus_uart_randomTimeoutCallback();
    }
    if( htim->Instance == TIM4 )   // led timer callback
    {
@@ -332,7 +329,7 @@ void HAL_TIM_PeriodElapsedCallback( TIM_HandleTypeDef *htim )
    }
    if( htim->Instance == TIM5 )   // bus access timer flag setter
    {
-      bus_uart_timeoutCallbackRx();
+      bus_uart_framegapTimeoutCallback();
    }
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

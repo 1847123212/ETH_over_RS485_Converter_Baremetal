@@ -69,19 +69,20 @@ typedef struct BUS_UART_RX_s
 } UART_RX_t;
 
 // Exported functions *********************************************************
-void                 uart_init                  ( void );
-void                 HAL_UART_IdleLnCallback    ( UART_HandleTypeDef *huart );
-void                 uart_output                ( uint8_t* buffer, uint16_t length );
-void                 uart_setUartAccessFlag     ( void );
-void                 uart_resetUartAccessFlag   ( void );
-void                 uart_ledTimerCallback      ( void );
-void                 uart_startBytetimeout      ( void );
-void                 uart_bytetimeoutTimerCallback( void );
-void                 uart_customCallback        ( void );
-void                 uart_resetBytetimeout      ( void );
-void                 bus_uart_setRxIdleFlag     ( FlagStatus value );
-FlagStatus           bus_uart_getRxIdleFlag     ( void );
-void                 bus_uart_timeoutCallbackTx ( void );
-void                 bus_uart_timeoutCallbackRx ( void );
+void                 uart_init                        ( void );
+void                 HAL_UART_IdleLnCallback          ( UART_HandleTypeDef *huart );
+void                 uart_output                      ( uint8_t* buffer, uint16_t length );
+void                 uart_setUartAccessFlag           ( void );
+void                 uart_resetUartAccessFlag         ( void );
+void                 uart_ledTimerCallback            ( void );
+void                 uart_startBytetimeout            ( void );
+void                 uart_bytetimeoutTimerCallback    ( void );
+void                 uart_customCallback              ( void );
+void                 uart_resetBytetimeout            ( void );
+void                 bus_uart_setRxIdleFlag           ( FlagStatus value );
+FlagStatus           bus_uart_getRxIdleFlag           ( void );
+void                 bus_uart_randomTimeoutCallback   ( void );
+void                 bus_uart_framegapTimeoutCallback ( void );
+void                 bus_uart_startFramegap           ( void );
 void send( void );
 #endif // __PCU_BUS_UART_H
