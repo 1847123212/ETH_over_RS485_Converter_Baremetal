@@ -35,7 +35,7 @@
 #include "uart.h"
 
 // Private defines ************************************************************
-#define FRAMEGAPTIME   ( 1000u ) // 1=0.1 us
+#define FRAMEGAPTIME   ( 500u ) // 1=0.1 us
 
 // Private types     **********************************************************
 
@@ -93,7 +93,7 @@ void uart_init( void )
    
    // init random number generator
    bus_uart_rng_init();
-   
+
    // Timer for bus access
    bus_txTimer_init();
    bus_rxTimer_init();
@@ -264,14 +264,16 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t lengt
    
    // if necessary, wait for interframegap end
    while( timeoutFlagTx != SET && timeoutFlagRx != SET );
+   timeoutFlagTx = RESET;
+   timeoutFlagRx = RESET;
    
    // start the random countdown to check if the bus is not occupied
    do
    {
       bus_uart_startRandomTimeoutTx();
       while( timeoutFlagTx != SET  );
-   }
-   while( busRxIdleFlag != SET );
+      timeoutFlagTx = RESET;
+   }while( busRxIdleFlag != SET );
    
    // start transmitting in interrupt mode
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
@@ -472,7 +474,7 @@ static void bus_txTimer_init( void )
    HAL_TIM_Base_Init(&BusTimHandleTx);
    
    // Set the TIM3 priority
-   HAL_NVIC_SetPriority(TIM3_IRQn, 4, 0);
+   HAL_NVIC_SetPriority(TIM3_IRQn, 0, 1);
    
    // Enable the TIMx global Interrupt
    HAL_NVIC_EnableIRQ(TIM3_IRQn);
@@ -486,10 +488,8 @@ static void bus_txTimer_init( void )
 /// \return    none
 static void bus_uart_startRandomTimeoutTx( void )
 {
-   // reset timeout flag
-   timeoutFlagTx = RESET;
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+10; // 1 = 0.1 us
+   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 1000)+10;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
@@ -504,10 +504,8 @@ static void bus_uart_startRandomTimeoutTx( void )
 /// \return    none
 static void bus_uart_startTimeoutTx( uint32_t timeout_0point1us )
 {
-   // reset timeout flag
-   timeoutFlagTx = RESET;
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)timeout_0point1us; // 1 = 0.1 us
+   TIM3->ARR = (uint32_t)timeout_0point1us;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
@@ -553,7 +551,7 @@ static void bus_rxTimer_init( void )
    HAL_TIM_Base_Init(&BusTimHandleRx);
    
    // Set the TIM3 priority
-   HAL_NVIC_SetPriority(TIM5_IRQn, 4, 0);
+   HAL_NVIC_SetPriority(TIM5_IRQn, 0, 1);
    
    // Enable the TIMx global Interrupt
    HAL_NVIC_EnableIRQ(TIM5_IRQn);
@@ -567,10 +565,8 @@ static void bus_rxTimer_init( void )
 /// \return    none
 static void bus_uart_startRandomTimeoutRx( void )
 {
-   // reset timeout flag
-   timeoutFlagRx = RESET;
    // set a random number for the auto reload register
-   TIM5->ARR = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+10; // 1 = 0.1 us
+   TIM5->ARR = (uint32_t)(bus_uart_getRandomNumber() % 1000)+10;
    // set counter value to 0
    TIM5->CNT = 0;
    // start the timer
@@ -585,10 +581,8 @@ static void bus_uart_startRandomTimeoutRx( void )
 /// \return    none
 static void bus_uart_startTimeoutRx( uint32_t timeout_0point1us )
 {
-   // reset timeout flag
-   timeoutFlagRx = RESET;
    // set a random number for the auto reload register
-   TIM5->ARR = (uint32_t)timeout_0point1us; // 1 = 0.1 us
+   TIM5->ARR = (uint32_t)timeout_0point1us;
    // set counter value to 0
    TIM5->CNT = 0;
    // start the timer
@@ -657,11 +651,8 @@ static void bus_uart_rng_init( void )
 /// \return    rand number
 static uint32_t bus_uart_getRandomNumber( void )
 {
-   static volatile uint32_t rand;
-   HAL_RNG_GenerateRandomNumber(&RngHandle,(uint32_t*)&rand);
-	/* Wait until one RNG number is ready */
-	//while (!(RNG->SR & (RNG_SR_DRDY)));
-
+   uint32_t rand;
+   HAL_RNG_GenerateRandomNumber(&RngHandle,&rand);
 	/* Get a 32-bit Random number */
 	return rand;
 }

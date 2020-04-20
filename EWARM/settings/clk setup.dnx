@@ -9,7 +9,7 @@
         <stlinkfoundProbes />
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>2628072730</Checksum>
+        <Checksum>3390982892</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -56,15 +56,15 @@
         <ITMportsLogFile>0</ITMportsLogFile>
         <ITMlogFile>$PROJ_DIR$\ITM.log</ITMlogFile>
     </SWOTraceHWSettings>
+    <Registers>
+        <regBase0>TIM3_ARR 10</regBase0>
+        <regBase1>TIM3_CNT 10</regBase1>
+    </Registers>
     <struct_types>
         <Fmt0>UART_HandleTypeDef-ErrorCode	4	0</Fmt0>
         <Fmt1>UART_HandleTypeDef-RxState	4	0</Fmt1>
         <Fmt2>UART_HandleTypeDef-gState	4	0</Fmt2>
     </struct_types>
-    <Registers>
-        <regBase0>TIM3_ARR 10</regBase0>
-        <regBase1>TIM3_CNT 10</regBase1>
-    </Registers>
     <Trace2>
         <Enabled>0</Enabled>
         <ShowSource>0</ShowSource>
