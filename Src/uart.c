@@ -541,17 +541,11 @@ static void bus_framegapTimer_init( void )
 /// \return    none
 inline void bus_uart_startFramegap( void )
 {
-   // set counter value to 0
+   framegapTimeoutFlag = RESET;
+  __HAL_TIM_DISABLE_IT(&BusTimHandleRx, TIM_IT_UPDATE);
    TIM5->CNT = 0;
-   if( framegapTimeoutFlag != RESET )
-   {
-      // reset timeout flag
-      framegapTimeoutFlag = RESET;
-      // set auto reload register
-      TIM5->ARR = (uint32_t)FRAMEGAPTIME;
-      // start the timer
-      HAL_TIM_Base_Start_IT(&BusTimHandleRx);
-   }
+   __HAL_TIM_ENABLE_IT(&BusTimHandleRx, TIM_IT_UPDATE);
+   __HAL_TIM_ENABLE(&BusTimHandleRx);
 }
 
 //------------------------------------------------------------------------------
