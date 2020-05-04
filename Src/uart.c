@@ -317,12 +317,12 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t le
    // RS485 set to listening
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
    
-   // Clean & invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
-   
    // enable idle line and rx interrupt
    __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
    __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
+   
+   // Clean & invalidate data cache
+   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
    
    // start receiving in interrupt mode
    if(HAL_UART_Receive_DMA(huart, pData, length) != HAL_OK)
@@ -464,7 +464,7 @@ static void bus_randomTimer_init( void )
    HAL_TIM_Base_Init(&BusTimHandleTx);
    
    // Set the TIM3 priority
-   HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(TIM3_IRQn, 1, 0);
    
    // Enable the TIMx global Interrupt
    HAL_NVIC_EnableIRQ(TIM3_IRQn);
@@ -481,7 +481,7 @@ inline static void bus_uart_startRandomTimeout( void )
    // reset the flag
    randomTimeoutFlag = RESET;
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 1000)+10;
+   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+100;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
@@ -527,7 +527,7 @@ static void bus_framegapTimer_init( void )
    HAL_TIM_Base_Init(&BusTimHandleRx);
    
    // Set the TIM3 priority
-   HAL_NVIC_SetPriority(TIM5_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(TIM5_IRQn, 1, 0);
    
    // Enable the TIMx global Interrupt
    HAL_NVIC_EnableIRQ(TIM5_IRQn);
