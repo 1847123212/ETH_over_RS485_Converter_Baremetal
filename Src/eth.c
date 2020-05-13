@@ -303,7 +303,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
   HAL_GPIO_Init(GPIOG, &GPIO_InitStructure);	
   
   /* Enable the Ethernet global Interrupt */
-  HAL_NVIC_SetPriority(ETH_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(ETH_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(ETH_IRQn);
   
   /* Enable Ethernet clocks */

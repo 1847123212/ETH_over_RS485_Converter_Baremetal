@@ -390,8 +390,7 @@ void HAL_UART_AbortCpltCallback(UART_HandleTypeDef *UartHandle)
 /// \return    none
 void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
 {
-   static uint16_t    framelength;
-   
+   static uint16_t   framelength;
    static uint16_t   framelengthError;
    static uint16_t   preAmbleError;
    static uint16_t   crcError;
@@ -419,8 +418,6 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    {
       // start receive irq
       preAmbleError++;
-      //uart_receive( huart, rxBuffer, BUFFERLENGTH );
-      //return;
    }
    
    // crc check
