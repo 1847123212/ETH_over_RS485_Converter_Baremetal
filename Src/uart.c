@@ -116,7 +116,7 @@ void uart_init( void )
    
    // USART2 2 init
    huart2.Instance                           = USART2;
-   huart2.Init.BaudRate                      = 6000000;
+   huart2.Init.BaudRate                      = 6000000u;
    huart2.Init.WordLength                    = UART_WORDLENGTH_8B;
    huart2.Init.StopBits                      = UART_STOPBITS_1;
    huart2.Init.Parity                        = UART_PARITY_NONE;
@@ -285,10 +285,7 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t lengt
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
    
    // start transmitting in interrupt mode
-   HAL_UART_DMAStop(huart);
-   HAL_UART_Abort_IT(huart);
    __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
-   __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
    
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
@@ -310,6 +307,7 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t le
 {
    // Error counter for debugging purposes
    static uint32_t   uart_rx_err_counter;
+   static uint32_t   uart_rx_counter;
 
    // wait until uart peripheral is ready
    while(huart->gState != HAL_UART_STATE_READY);
@@ -319,7 +317,6 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t le
    
    // enable idle line and rx interrupt
    __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
-   __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
    
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
@@ -329,6 +326,8 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t le
    {
       uart_rx_err_counter++;
    }
+   
+   uart_rx_counter++;
 }
 
 //------------------------------------------------------------------------------
@@ -398,8 +397,6 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    // take action on the peripherals
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);
-   __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
-   __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
    
    // get message length
    framelength = BUFFERLENGTH - __HAL_DMA_GET_COUNTER(huart->hdmarx);
