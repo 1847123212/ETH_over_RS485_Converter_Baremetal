@@ -8,12 +8,32 @@
 ///
 /// \author    Nico Korn
 ///
-/// \version   0.3
+/// \version   1.0
 ///
-/// \date      02122019
+/// \date      27102020
 /// 
-/// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
-///            all rights reserved.
+/// \copyright Copyright 2020 Reichle & De-Massari AG
+///            
+///            Permission is hereby granted, free of charge, to any person 
+///            obtaining a copy of this software and associated documentation 
+///            files (the "Software"), to deal in the Software without 
+///            restriction, including without limitation the rights to use, 
+///            copy, modify, merge, publish, distribute, sublicense, and/or sell
+///            copies of the Software, and to permit persons to whom the 
+///            Software is furnished to do so, subject to the following 
+///            conditions:
+///            
+///            The above copyright notice and this permission notice shall be 
+///            included in all copies or substantial portions of the Software.
+///            
+///            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+///            EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+///            OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+///            NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+///            HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+///            WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+///            FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR 
+///            OTHER DEALINGS IN THE SOFTWARE.
 ///
 /// \pre       
 ///
@@ -127,6 +147,7 @@ void list_manager( void )
          // setup the next frame pointed by the tx pointer and send it hrough the uart interface
          uart_output( head->data, head->dataLength );
       }
+      
       // decrement list length
       dataPacketsOUT++;
       listLength--;
@@ -161,8 +182,10 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    {
       // increment malloc fail counter
       mallocFailCounter++;
+      
       // enable all interrupts again
       __enable_irq();
+      
       return;
    }
    
@@ -179,10 +202,13 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    {
       // increment malloc fail counter
       mallocFailCounter++;
+      
       // free allready allocated data
       free(newNode);
+      
       // enable all interrupts again
       __enable_irq();
+      
       return;
    }
    
@@ -197,9 +223,6 @@ inline void list_insertData( uint8_t* data, uint16_t dataLength, message_directi
    
    // tail node needs address of the new tailnode "newNode"
    tailNode->next = newNode;
-   
-   // enable all interrupts again
-   //__enable_irq();
    
    // increment list length
    dataPacketsIN++;

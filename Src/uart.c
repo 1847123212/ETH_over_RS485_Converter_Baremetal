@@ -4,16 +4,36 @@
 /// \brief     bus uart module
 ///
 /// \details   Module used to initialise bus uart peripherals completed with 
-///            functions
+///            functions for receiving and transmitting data.
 ///
 /// \author    Nico Korn
 ///
-/// \version   0.2
+/// \version   1.0
 ///
-/// \date      10042019
+/// \date      27102020
 /// 
-/// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
-///            all rights reserved.
+/// \copyright Copyright 2020 Reichle & De-Massari AG
+///            
+///            Permission is hereby granted, free of charge, to any person 
+///            obtaining a copy of this software and associated documentation 
+///            files (the "Software"), to deal in the Software without 
+///            restriction, including without limitation the rights to use, 
+///            copy, modify, merge, publish, distribute, sublicense, and/or sell
+///            copies of the Software, and to permit persons to whom the 
+///            Software is furnished to do so, subject to the following 
+///            conditions:
+///            
+///            The above copyright notice and this permission notice shall be 
+///            included in all copies or substantial portions of the Software.
+///            
+///            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+///            EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+///            OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+///            NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+///            HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+///            WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+///            FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR 
+///            OTHER DEALINGS IN THE SOFTWARE.
 ///
 /// \pre       
 ///
@@ -569,7 +589,7 @@ static void bus_uart_rng_init( void )
    RngHandle.Instance = RNG;
    if (HAL_RNG_Init(&RngHandle) != HAL_OK)
    {
-      /* Initialization Error */
+      // Initialization Error
       while(1);
    }
 }
@@ -584,7 +604,6 @@ static uint32_t bus_uart_getRandomNumber( void )
 {
    uint32_t rand;
    HAL_RNG_GenerateRandomNumber(&RngHandle,&rand);
-	/* Get a 32-bit Random number */
 	return rand;
 }
 

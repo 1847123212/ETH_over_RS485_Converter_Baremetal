@@ -2,18 +2,39 @@
 /// \file      led.c
 ///
 /// \brief     Led module to init and provide control functions to the status 
-///            led. The status led toggles its light regulary, 
+///            led. The status led toggles its light regulary, to show if the 
+///            gateway has not stuck somewhere.
 ///
 /// \details   -
 ///
 /// \author    Nico Korn
 ///
-/// \version   0.3
+/// \version   1.0
 ///
-/// \date      02122019
+/// \date      27102020
 /// 
-/// \copyright Copyright (C) 2019  by "Reichle & De-Massari AG", 
-///            all rights reserved.
+/// \copyright Copyright 2020 Reichle & De-Massari AG
+///            
+///            Permission is hereby granted, free of charge, to any person 
+///            obtaining a copy of this software and associated documentation 
+///            files (the "Software"), to deal in the Software without 
+///            restriction, including without limitation the rights to use, 
+///            copy, modify, merge, publish, distribute, sublicense, and/or sell
+///            copies of the Software, and to permit persons to whom the 
+///            Software is furnished to do so, subject to the following 
+///            conditions:
+///            
+///            The above copyright notice and this permission notice shall be 
+///            included in all copies or substantial portions of the Software.
+///            
+///            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+///            EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+///            OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+///            NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+///            HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+///            WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+///            FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR 
+///            OTHER DEALINGS IN THE SOFTWARE.
 ///
 /// \pre       
 ///
@@ -83,7 +104,7 @@ static void led_gpio_init( void )
 /// \return    none
 static void led_timer_init( void )
 {
-    // Compute the prescaler value to have TIM3 counter clock equal to 10000 Hz = 10 us
+    // Compute the prescaler value to have TIM4 counter clock equal to 10000 Hz = 10 us
     uint32_t uwPrescalerValue = (uint32_t)(SystemCoreClock / (2*10000)) - 1;
    
    // clock
@@ -98,10 +119,10 @@ static void led_timer_init( void )
    LedTimHandle.Init.RepetitionCounter = 0;
    HAL_TIM_Base_Init(&LedTimHandle);
    
-   // Set the TIM2 priority
+   // Set the TIM4 priority
    HAL_NVIC_SetPriority(TIM4_IRQn, 9, 0);
    
-   // Enable the TIMx global Interrupt
+   // Enable the TIM4 global Interrupt
    HAL_NVIC_EnableIRQ(TIM4_IRQn);
   
    // temporary led it blink
