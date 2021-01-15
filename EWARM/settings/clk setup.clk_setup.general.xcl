@@ -2,7 +2,7 @@
 
 "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\bin\armstlink2.dll" 
 
-"D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\clk setup\Exe\clk setup.out" 
+"D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM\clk setup\Exe\clk setup.out" 
 
 --plugin="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\bin\armbat.dll" 
 
