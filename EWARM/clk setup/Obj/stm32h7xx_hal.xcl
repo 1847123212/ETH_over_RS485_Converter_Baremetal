@@ -1,42 +1,42 @@
-"D:\GitHub\ETH_to_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal.c"
+"D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal.c"
 -std=c11
 -ferror-limit=0
 -fbracket-depth=512
 -MD
 -MF
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM\clk setup\Obj\stm32h7xx_hal.pbi.dep
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\clk setup\Obj\stm32h7xx_hal.pbi.dep
 -o
 stm32h7xx_hal.pbi
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Src
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Src
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM/../Inc
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Inc
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM/../Drivers/STM32H7xx_HAL_Driver/Inc
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/STM32H7xx_HAL_Driver/Inc
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM/../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM/../Drivers/CMSIS/Device/ST/STM32H7xx/Include
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/CMSIS/Device/ST/STM32H7xx/Include
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM/../Drivers/CMSIS/Include
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/CMSIS/Include
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM\..\Drivers\BSP\Components\lan8742
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\..\Drivers\BSP\Components\lan8742
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\Inc
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Inc
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Inc
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Inc
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Inc\Legacy
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Inc\Legacy
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\Drivers\CMSIS\Device\ST\STM32H7xx\Include
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\CMSIS\Device\ST\STM32H7xx\Include
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\Drivers\CMSIS\Include
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\CMSIS\Include
 -I
-D:\GitHub\ETH_to_RS485_Converter_Baremetal\Drivers\BSP\Components\lan8742
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\BSP\Components\lan8742
 -D__CHAR_BITS__=8
 -D__CHAR_MAX__=0xff
 -D__CHAR_MIN__=0

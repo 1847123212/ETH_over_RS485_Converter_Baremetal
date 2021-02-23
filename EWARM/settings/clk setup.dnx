@@ -9,7 +9,7 @@
         <LeaveTargetRunning>_ 0</LeaveTargetRunning>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>2882756904</Checksum>
+        <Checksum>1782165068</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -141,7 +141,8 @@
     <Aliases>
         <A0>_ "C:\Users\nkorn\Desktop\clk setup - Kopie\EWARM\startup_stm32h743xx.s" "D:\GitHub\Netscale_72_SW_Networkbridge\EWARM\startup_stm32h743xx.s"</A0>
         <A1>_ "C:\Users\nkorn\Documents\GitHub\Netscale_72_SW_Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_crc_ex.c" "D:\GitHub\Netscale_72_SW_Networkbridge\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_crc_ex.c"</A1>
-        <Count>2</Count>
+        <A2>_ "D:\GitHub\Netscale_72_SW_Networkbridge\Drivers\BSP\Components\lan8742\lan8742.c" "D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\BSP\Components\lan8742\lan8742.c"</A2>
+        <Count>3</Count>
         <SuppressDialog>1</SuppressDialog>
     </Aliases>
 </settings>

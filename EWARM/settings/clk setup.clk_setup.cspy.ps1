@@ -23,9 +23,9 @@
 
 if ($debugfile -eq "")
 {
-& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\common\bin\cspybat" -f "D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM\settings\clk setup.clk_setup.general.xcl" --backend -f "D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM\settings\clk setup.clk_setup.driver.xcl" 
+& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\common\bin\cspybat" -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\clk setup.clk_setup.general.xcl" --backend -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\clk setup.clk_setup.driver.xcl" 
 }
 else
 {
-& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\common\bin\cspybat" -f "D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM\settings\clk setup.clk_setup.general.xcl" --debug_file=$debugfile --backend -f "D:\GitHub\ETH_to_RS485_Converter_Baremetal\EWARM\settings\clk setup.clk_setup.driver.xcl" 
+& "C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\common\bin\cspybat" -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\clk setup.clk_setup.general.xcl" --debug_file=$debugfile --backend -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\clk setup.clk_setup.driver.xcl" 
 }

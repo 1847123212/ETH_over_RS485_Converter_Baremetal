@@ -55,7 +55,7 @@
 #include "uart.h"
 
 // Private defines ************************************************************
-#define FRAMEGAPTIME   ( 1000u ) // 1=0.1 us
+#define FRAMEGAPTIME   ( 2000u ) // 1=0.1 us (1000 for 6mbit), (2000 for 3mbit)
 
 // Private types     **********************************************************
 
@@ -136,13 +136,13 @@ void uart_init( void )
    
    // USART2 2 init
    huart2.Instance                           = USART2;
-   huart2.Init.BaudRate                      = 6000000u;
+   huart2.Init.BaudRate                      = 3000000u;
    huart2.Init.WordLength                    = UART_WORDLENGTH_8B;
    huart2.Init.StopBits                      = UART_STOPBITS_1;
    huart2.Init.Parity                        = UART_PARITY_NONE;
    huart2.Init.Mode                          = UART_MODE_TX_RX;
    huart2.Init.HwFlowCtl                     = UART_HWCONTROL_NONE;
-   huart2.Init.OverSampling                  = UART_OVERSAMPLING_8;
+   huart2.Init.OverSampling                  = UART_OVERSAMPLING_16;
    huart2.Init.OneBitSampling                = UART_ONE_BIT_SAMPLE_DISABLE;
    huart2.Init.ClockPrescaler                = UART_PRESCALER_DIV1;
    huart2.AdvancedInit.AdvFeatureInit        = UART_ADVFEATURE_NO_INIT;
@@ -496,7 +496,7 @@ inline static void bus_uart_startRandomTimeout( void )
    // reset the flag
    randomTimeoutFlag = RESET;
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+100;
+   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 200)*20+200;//3mbit = (uint32_t)(bus_uart_getRandomNumber() % 200)*20+200; // 6mbit = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+100;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
