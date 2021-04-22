@@ -79,7 +79,7 @@ static uint32_t            listLength;
 // Private functions **********************************************************
 
 // ----------------------------------------------------------------------------
-/// \brief     Buffer init
+/// \brief     List init.
 ///
 /// \param     none
 ///
@@ -112,12 +112,12 @@ void list_init( void )
 }
 
 // ----------------------------------------------------------------------------
-/// \brief     Buffermanager checks if there is something in the ringbuffer
-///            to send and gives the command to do so if necessary
+/// \brief     The list manager checks for available node, and sends them
+///            to the matching interface.
 ///
 /// \param     none
 ///
-/// \return    -
+/// \return    none
 void list_manager( void )
 {
    static node_t *next;
@@ -156,13 +156,13 @@ void list_manager( void )
 }
 
 // ----------------------------------------------------------------------------
-/// \brief     unlocks the ringbuffer access as shared source
+/// \brief     Inserts a new list item.
 ///
 /// \param     [in] data pointer
 /// \param     [in] data length
 /// \param     [in] direction
 ///
-/// \return    -
+/// \return    none
 inline void list_insertData( uint8_t* data, uint16_t dataLength, message_direction_t messageDirection )
 {
    // disable all interrupts, as malloc is used in an isr

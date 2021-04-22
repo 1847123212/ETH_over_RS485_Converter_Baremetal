@@ -566,7 +566,7 @@ inline void bus_uart_startFramegap( void )
 //------------------------------------------------------------------------------
 /// \brief     Callback function for timer 3, which sets the bus access flag.
 ///
-/// \param     -
+/// \param     none
 ///
 /// \return    none
 inline void bus_uart_framegapTimeoutCallback( void )

@@ -90,7 +90,7 @@ int main( void )
    // init the toggling status led
    led_init();
 
-   // init buffer and start to reveive
+   // init list and start to reveive
    list_init();
    
    // initialize the ethernet interface
@@ -102,7 +102,8 @@ int main( void )
    // Infinite loop
    while (1)
    {
-      // wait for a new slot to be send
+      // check if a new list node has been added for sending it to the
+      // matching interface.
       list_manager();
    }
 }
