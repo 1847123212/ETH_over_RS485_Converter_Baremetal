@@ -83,7 +83,7 @@ static uint32_t            listLength;
 ///
 /// \param     none
 ///
-/// \return    -
+/// \return    none
 void list_init( void )
 {
    // init dummy header

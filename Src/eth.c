@@ -131,7 +131,7 @@ lan8742_IOCtx_t  LAN8742_IOCtx = {ETH_PHY_IO_Init,
 /// \param     none
 ///
 /// \return    none
-static void mpu_eth_config(void)
+static void mpu_eth_config( void )
 {
   MPU_Region_InitTypeDef MPU_InitStruct;
   
@@ -336,10 +336,10 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
 //------------------------------------------------------------------------------
 /// \brief     ETH MSP De-Initialization 
 ///
-/// \param     [in]  ETH handle pointer
+/// \param     [in]  ETH_HandleTypeDef* heth
 ///
 /// \return    none
-void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
+void HAL_ETH_MspDeInit( ETH_HandleTypeDef* heth )
 {
   if(heth->Instance==ETH)
   {
@@ -382,7 +382,8 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
 //------------------------------------------------------------------------------
 /// \brief      send the message to the eth peripherals                 
 ///
-/// \param     [in]  BufferSlot
+/// \param     [in]  uint8_t* buffer
+/// \param     [in]  uint16_t length
 ///
 /// \return    none
 void eth_output( uint8_t* buffer, uint16_t length )
@@ -435,7 +436,7 @@ void eth_output( uint8_t* buffer, uint16_t length )
 /// \param     none
 ///
 /// \return    0 if OK -1 if Error
-int32_t ETH_PHY_IO_Init(void)
+int32_t ETH_PHY_IO_Init( void )
 {  
    // Configure the MDIO Clock
    HAL_ETH_SetMDIOClockRange(&heth);
@@ -449,7 +450,7 @@ int32_t ETH_PHY_IO_Init(void)
 /// \param     none
 ///
 /// \return    0 if OK -1 if Error
-int32_t ETH_PHY_IO_DeInit (void)
+int32_t ETH_PHY_IO_DeInit( void )
 {
    return 0;
 }
@@ -462,7 +463,7 @@ int32_t ETH_PHY_IO_DeInit (void)
 /// \param     [in]  pRegVal: pointer to hold the register value 
 ///
 /// \return    0 if OK -1 if Error
-int32_t ETH_PHY_IO_ReadReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t *pRegVal)
+int32_t ETH_PHY_IO_ReadReg( uint32_t DevAddr, uint32_t RegAddr, uint32_t *pRegVal )
 {
    if(HAL_ETH_ReadPHYRegister(&heth, DevAddr, RegAddr, pRegVal) != HAL_OK)
    {
@@ -480,7 +481,7 @@ int32_t ETH_PHY_IO_ReadReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t *pRegVal
 /// \param     [in]  RegVal: Value to be written 
 ///
 /// \return    0 if OK -1 if Error
-int32_t ETH_PHY_IO_WriteReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t RegVal)
+int32_t ETH_PHY_IO_WriteReg( uint32_t DevAddr, uint32_t RegAddr, uint32_t RegVal )
 {
    if(HAL_ETH_WritePHYRegister(&heth, DevAddr, RegAddr, RegVal) != HAL_OK)
    {
@@ -496,7 +497,7 @@ int32_t ETH_PHY_IO_WriteReg(uint32_t DevAddr, uint32_t RegAddr, uint32_t RegVal)
 /// \param     none
 ///
 /// \return    Time value
-int32_t ETH_PHY_IO_GetTick(void)
+int32_t ETH_PHY_IO_GetTick( void )
 {
    return HAL_GetTick();
 }
@@ -565,7 +566,7 @@ void eth_link_update( void )
 /// \param     [in] ETH_HandleTypeDef
 ///
 /// \return    none
-void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
+void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef *heth )
 {
    static ETH_BufferTypeDef RxBuff;
 
@@ -588,7 +589,7 @@ void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 /// \param     [in] ETH_HandleTypeDef
 ///
 /// \return    none
-void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
+void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef *heth )
 {
 }
 
@@ -598,7 +599,7 @@ void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
 /// \param     [in] ETH_HandleTypeDef
 ///
 /// \return    none
-void HAL_ETH_DMAErrorCallback(ETH_HandleTypeDef *heth)
+void HAL_ETH_DMAErrorCallback( ETH_HandleTypeDef *heth )
 {
 }
 
@@ -608,7 +609,7 @@ void HAL_ETH_DMAErrorCallback(ETH_HandleTypeDef *heth)
 /// \param     [in] ETH_HandleTypeDef
 ///
 /// \return    none
-void HAL_ETH_MACErrorCallback(ETH_HandleTypeDef *heth)
+void HAL_ETH_MACErrorCallback( ETH_HandleTypeDef *heth )
 {
 }
 
@@ -618,7 +619,7 @@ void HAL_ETH_MACErrorCallback(ETH_HandleTypeDef *heth)
 /// \param     [in] ETH_HandleTypeDef
 ///
 /// \return    none
-void HAL_ETH_PMTCallback(ETH_HandleTypeDef *heth)
+void HAL_ETH_PMTCallback( ETH_HandleTypeDef *heth )
 {
 }
 
@@ -628,7 +629,7 @@ void HAL_ETH_PMTCallback(ETH_HandleTypeDef *heth)
 /// \param     [in] ETH_HandleTypeDef
 ///
 /// \return    none
-void HAL_ETH_EEECallback(ETH_HandleTypeDef *heth)
+void HAL_ETH_EEECallback( ETH_HandleTypeDef *heth )
 {
 }
 
@@ -638,7 +639,7 @@ void HAL_ETH_EEECallback(ETH_HandleTypeDef *heth)
 /// \param     [in] ETH_HandleTypeDef
 ///
 /// \return    none
-void HAL_ETH_WakeUpCallback(ETH_HandleTypeDef *heth)
+void HAL_ETH_WakeUpCallback( ETH_HandleTypeDef *heth )
 {
 }
 

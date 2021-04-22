@@ -321,7 +321,9 @@ static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t lengt
 //------------------------------------------------------------------------------
 /// \brief     Function to receive data over uart
 ///
-/// \param     -
+/// \param     [in]  UART_HandleTypeDef *huart
+/// \param     [in]  uint8_t *pData
+/// \param     [in]  uint16_t length
 ///
 /// \return    none
 static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length )
@@ -369,7 +371,7 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 /// \brief     Rx Transfer completed callback (not needed, because idle line
 ///            detection is being used.                   
 ///
-/// \param     [in] UART_HandleTypeDef
+/// \param     [in]  UART_HandleTypeDef *huart
 ///
 /// \return    none
 void HAL_UART_RxCpltCallback( UART_HandleTypeDef *huart )
@@ -379,10 +381,10 @@ void HAL_UART_RxCpltCallback( UART_HandleTypeDef *huart )
 //------------------------------------------------------------------------------
 /// \brief     Error callback of the uart peripheral                   
 ///
-/// \param     - 
+/// \param     [in]  UART_HandleTypeDef *UartHandle
 ///
 /// \return    none
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
+void HAL_UART_ErrorCallback( UART_HandleTypeDef *UartHandle )
 {
    static uint16_t errorCallbackCounter;
    errorCallbackCounter++;
@@ -391,10 +393,10 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
 //------------------------------------------------------------------------------
 /// \brief     Error abort callback of the uart peripheral                   
 ///
-/// \param     - 
+/// \param     [in]  UART_HandleTypeDef *UartHandle
 ///
 /// \return    none
-void HAL_UART_AbortCpltCallback(UART_HandleTypeDef *UartHandle)
+void HAL_UART_AbortCpltCallback( UART_HandleTypeDef *UartHandle )
 {
    static uint16_t abortCallbackCounter;
    abortCallbackCounter++;
@@ -488,7 +490,7 @@ static void bus_randomTimer_init( void )
 //------------------------------------------------------------------------------
 /// \brief     Starts the timer with a random value
 ///
-/// \param     -
+/// \param     none
 ///
 /// \return    none
 inline static void bus_uart_startRandomTimeout( void )
@@ -506,7 +508,7 @@ inline static void bus_uart_startRandomTimeout( void )
 //------------------------------------------------------------------------------
 /// \brief     Callback function for timer 3, which sets the bus access flag.
 ///
-/// \param     -
+/// \param     none
 ///
 /// \return    none
 inline void bus_uart_randomTimeoutCallback( void )
@@ -551,7 +553,7 @@ static void bus_framegapTimer_init( void )
 //------------------------------------------------------------------------------
 /// \brief     Starts the timer with a defined value
 ///
-/// \param     [in] timer value for the auto reload register
+/// \param     none
 ///
 /// \return    none
 inline void bus_uart_startFramegap( void )
