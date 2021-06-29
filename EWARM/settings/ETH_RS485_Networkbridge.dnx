@@ -9,7 +9,7 @@
         <LeaveTargetRunning>_ 0</LeaveTargetRunning>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>1782165068</Checksum>
+        <Checksum>2777625100</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -61,9 +61,10 @@
         <regBase1>TIM3_CNT 10</regBase1>
     </Registers>
     <struct_types>
-        <Fmt0>UART_HandleTypeDef-ErrorCode	4	0</Fmt0>
-        <Fmt1>UART_HandleTypeDef-RxState	4	0</Fmt1>
-        <Fmt2>UART_HandleTypeDef-gState	4	0</Fmt2>
+        <Fmt0>ETH_HandleTypeDef-gState	4	0</Fmt0>
+        <Fmt1>UART_HandleTypeDef-ErrorCode	4	0</Fmt1>
+        <Fmt2>UART_HandleTypeDef-RxState	4	0</Fmt2>
+        <Fmt3>UART_HandleTypeDef-gState	4	0</Fmt3>
     </struct_types>
     <Trace2>
         <Enabled>0</Enabled>

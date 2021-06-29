@@ -391,7 +391,7 @@ void eth_output( uint8_t* buffer, uint16_t length )
    static ETH_BufferTypeDef   Txbuffer;
    static uint32_t            eth_tx_err_counter = 0;
    
-   //while(heth.gState != HAL_ETH_STATE_READY);
+   while(heth.gState != HAL_ETH_STATE_READY);
    
    // Clean and Invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
@@ -424,7 +424,7 @@ void eth_output( uint8_t* buffer, uint16_t length )
    heth.Instance->MACA0LR = ((heth.Init.MACAddr[3] << 24) | (heth.Init.MACAddr[2] << 16) | (heth.Init.MACAddr[1] << 8) | heth.Init.MACAddr[0]);
    
    // send the data
-   if(HAL_ETH_Transmit_IT(&heth, &TxConfig) != HAL_OK)
+   while(HAL_ETH_Transmit_IT(&heth, &TxConfig) != HAL_OK)
    {
       eth_tx_err_counter++;
    }

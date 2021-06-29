@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\common\bin\cspybat" -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\ETH_RS485_Networkbridge.ETH_RS485_Networkbridge.general.xcl" --backend -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\ETH_RS485_Networkbridge.ETH_RS485_Networkbridge.driver.xcl" 
+"C:\Program Files\IAR Systems\Embedded Workbench 9.0\common\bin\cspybat" -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\ETH_RS485_Networkbridge.ETH_RS485_Networkbridge.general.xcl" --backend -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\ETH_RS485_Networkbridge.ETH_RS485_Networkbridge.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\common\bin\cspybat" -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\ETH_RS485_Networkbridge.ETH_RS485_Networkbridge.general.xcl" "--debug_file=%~1" --backend -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\ETH_RS485_Networkbridge.ETH_RS485_Networkbridge.driver.xcl" 
+"C:\Program Files\IAR Systems\Embedded Workbench 9.0\common\bin\cspybat" -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\ETH_RS485_Networkbridge.ETH_RS485_Networkbridge.general.xcl" "--debug_file=%~1" --backend -f "D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\settings\ETH_RS485_Networkbridge.ETH_RS485_Networkbridge.driver.xcl" 
 
 @echo off 
 :end

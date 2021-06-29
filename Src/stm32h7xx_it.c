@@ -240,6 +240,8 @@ void DMA1_Stream1_IRQHandler(void)
   */
 void USART2_IRQHandler(void)
 {
+   bus_uart_startFramegap();
+   
    // excecute HAL_UART_IRQHandler as usual
    HAL_UART_IRQHandler(&huart2);
    // Framegaptimer
@@ -247,7 +249,7 @@ void USART2_IRQHandler(void)
    //   || __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_TXE ) != RESET )
    //   || __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_IDLE) != RESET )
    //{
-      bus_uart_startFramegap();
+   
    //}
    
    // check for idle line detection interrupt
