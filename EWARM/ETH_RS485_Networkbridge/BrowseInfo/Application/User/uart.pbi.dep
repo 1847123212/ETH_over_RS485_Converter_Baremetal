@@ -1,6 +1,7 @@
 D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\ETH_RS485_Networkbridge\BrowseInfo\Application\User\uart.pbi: \
   D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\..\Inc\uart.h \
-  D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\..\Inc\list.h \
+  D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\..\Inc\queue.h \
+  C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.0\arm\inc\c\stdbool.h \
   C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.0\arm\inc\c\DLib_Product_stdlib.h \
   C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.0\arm\inc\c\ycheck.h \
   C:\Program\ Files\IAR\ Systems\Embedded\ Workbench\ 9.0\arm\inc\c\stdlib.h \

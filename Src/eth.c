@@ -50,7 +50,8 @@
 #include "main.h"
 #include <string.h>
 #include <stdio.h>
-#include "list.h"
+//#include "list.h"
+#include "queue.h"
 #include "lan8742.h"
 #include "uart.h"
 #include <stdint.h>
@@ -108,6 +109,9 @@ extern CRC_HandleTypeDef      hcrc;
 ETH_HandleTypeDef             heth;
 ETH_TxPacketConfig            TxConfig; 
 lan8742_Object_t              LAN8742;
+
+extern queue_handle_t         uartQueue;
+extern queue_handle_t         ethQueue;
 
 // Private function prototypes ************************************************
 int32_t ETH_PHY_IO_Init(void);
@@ -386,18 +390,18 @@ void HAL_ETH_MspDeInit( ETH_HandleTypeDef* heth )
 /// \param     [in]  uint16_t length
 ///
 /// \return    none
-void eth_output( uint8_t* buffer, uint16_t length )
+uint8_t eth_output( uint8_t* buffer, uint16_t length )
 {   
    static ETH_BufferTypeDef   Txbuffer;
    static uint32_t            eth_tx_err_counter = 0;
    
-   while(heth.gState != HAL_ETH_STATE_READY);
+   if( heth.gState != HAL_ETH_STATE_READY )
+   {
+      return 0;
+   }
    
    // Clean and Invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
-
-   length = length-PREAMBLESFDLENGTH-CRC32LENGTH;
-   buffer = buffer+PREAMBLESFDLENGTH;
 
    memcpy((void*)Tx_Buff, buffer, length);   
    
@@ -424,10 +428,13 @@ void eth_output( uint8_t* buffer, uint16_t length )
    heth.Instance->MACA0LR = ((heth.Init.MACAddr[3] << 24) | (heth.Init.MACAddr[2] << 16) | (heth.Init.MACAddr[1] << 8) | heth.Init.MACAddr[0]);
    
    // send the data
-   while(HAL_ETH_Transmit_IT(&heth, &TxConfig) != HAL_OK)
+   if(HAL_ETH_Transmit_IT(&heth, &TxConfig) != HAL_OK)
    {
       eth_tx_err_counter++;
+      return 0;
    }
+   
+   return 1;
 }
 
 //------------------------------------------------------------------------------
@@ -577,7 +584,9 @@ void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef *heth )
    HAL_ETH_GetRxDataBuffer(heth, &RxBuff);
    
    // create a new node in the list, with the received data
-   list_insertData( RxBuff.buffer, RxBuff.len, ETH_TO_UART );
+   //list_insertData( RxBuff.buffer, RxBuff.len, ETH_TO_UART );
+   memcpy( queue_getHeadBuffer(&ethQueue)+PREAMBLESFDLENGTH, RxBuff.buffer, RxBuff.len );
+   queue_enqueue( queue_getHeadBuffer(&ethQueue), (uint16_t)RxBuff.len, &ethQueue );
 
    // set the RX descriptor for next receive
    HAL_ETH_BuildRxDescriptors(heth);
@@ -591,6 +600,8 @@ void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef *heth )
 /// \return    none
 void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef *heth )
 {
+   // dequeue the tail
+   queue_dequeue( &uartQueue );
 }
 
 //------------------------------------------------------------------------------

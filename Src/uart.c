@@ -51,7 +51,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "list.h"
+#include <stdbool.h>
+//#include "list.h"
+#include "queue.h"
 #include "uart.h"
 
 // Private defines ************************************************************
@@ -61,11 +63,12 @@
 
 // Private variables **********************************************************
 static const uint8_t          preAmbleSFD[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAB};
-static uint8_t                rxBuffer[BUFFERLENGTH];
+static uint8_t                *rxBuffer;
 static uint8_t                txBuffer[BUFFERLENGTH];
 
 static volatile FlagStatus    randomTimeoutFlag = SET;  
 static volatile FlagStatus    framegapTimeoutFlag = SET;  
+static volatile FlagStatus    sending = false;
 
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
@@ -76,11 +79,13 @@ extern ETH_HandleTypeDef      heth;
 TIM_HandleTypeDef             BusTimHandleTx;
 TIM_HandleTypeDef             BusTimHandleRx;
 RNG_HandleTypeDef             RngHandle;
+extern queue_handle_t         uartQueue;
+extern queue_handle_t         ethQueue;
 
 // Private function prototypes ************************************************
 static void      crc_init                       ( void );
 static uint32_t  uart_calcCRC                   ( uint32_t* dataPointer, uint32_t dataLength );
-static void      uart_send                      ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length );
+static uint8_t   uart_send                      ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length );
 static void      uart_receive                   ( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length );
 static void      bus_randomTimer_init           ( void );
 static void      bus_uart_startRandomTimeout    ( void );
@@ -209,6 +214,7 @@ void uart_init( void )
    memcpy(txBuffer, preAmbleSFD, PREAMBLESFDLENGTH);
    
    // start to receive uart(rs485)
+   rxBuffer = queue_getHeadBuffer( &uartQueue );
    uart_receive( &huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
 
@@ -236,16 +242,58 @@ static void crc_init(void)
    }
 }
 
-void uart_output( uint8_t* buffer, uint16_t length )
+uint8_t uart_output( uint8_t* buffer, uint16_t length )
 {
-   // wait for the peripheral to be ready
-   while( huart2.gState != HAL_UART_STATE_READY );
-       
-   // copy data into tx output buffer
-   memcpy( &txBuffer[MACDSTFIELD], buffer, length );
+   // check for the peripheral and bus access to be ready
+   if( huart2.gState != HAL_UART_STATE_READY || randomTimeoutFlag != SET || framegapTimeoutFlag != SET )
+   {
+      return 0;
+   }
    
-   // send the data in the buffer
-   uart_send(&huart2, txBuffer, length);
+   uint32_t   crc32;
+   uint8_t*   crcFragment;
+   
+   //if( memcmp( buffer, preAmbleSFD, 8u ) != 0 )
+   //{
+    // copy preamble into buffer, caution this is dangerous but since the
+    // usb data header is bigger than 8 this is no problem for this case.
+    memcpy( buffer, preAmbleSFD, 8u );
+    
+    // calculate crc32 value
+    crc32 = uart_calcCRC( (uint32_t*)&buffer[MACDSTFIELD], (uint32_t)length );
+    
+    // append crc to the outputbuffer
+    crcFragment = (uint8_t*)&crc32;
+    
+    for( uint8_t i=0, j=3; i<4; i++,j-- )
+    {
+       buffer[MACDSTFIELD+length+i] = crcFragment[j];
+    }
+   //}
+   
+   // check for the peripheral and bus access to be ready
+   if( huart2.gState != HAL_UART_STATE_READY || randomTimeoutFlag != SET || framegapTimeoutFlag != SET )
+   {
+      return 0;
+   }
+
+   // switch the RS485 transceiver into transmit mode
+   HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
+   
+   // start transmitting in interrupt mode
+   __HAL_UART_DISABLE_IT(&huart2, UART_IT_IDLE);         // disable idle line interrupt
+   __HAL_UART_DISABLE_IT(&huart2, UART_IT_RXNE);         // disable rx interrupt
+
+   // Clean & invalidate data cache
+   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)buffer, BUFFERLENGTH);
+   
+   // send the data
+   if(HAL_UART_Transmit_DMA(&huart2, (uint8_t*)buffer, length+(uint16_t)PREAMBLESFDLENGTH+(uint16_t)CRC32LENGTH ) != HAL_OK )
+   {
+      return 0;
+   }
+   
+   return 1;
 }
 
 //------------------------------------------------------------------------------
@@ -268,59 +316,9 @@ static uint32_t uart_calcCRC( uint32_t* dataPointer, uint32_t dataLength )
 /// \param     [in] length of the buffer
 ///
 /// \return    none
-static void uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length )
+static uint8_t uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length )
 {
-   // Error counter for debugging purposes
-   static uint32_t   uart_tx_err_counter;
-   static uint32_t   crc32;
-   static uint8_t*   crcFragment;
-   
-   // calculate crc32 value
-   crc32 = uart_calcCRC( (uint32_t*)&pData[MACDSTFIELD], (uint32_t)length );
-   
-   // append crc to the outputbuffer
-   crcFragment = (uint8_t*)&crc32;
-   
-   for( uint8_t i=0, j=3; i<4; i++,j-- )
-   {
-      pData[MACDSTFIELD+length+i] = crcFragment[j];
-   }
-   
-   // if necessary, wait for interframegap end
-   while( framegapTimeoutFlag != SET )
-   {
-      bus_uart_startRandomTimeout();
-      while( randomTimeoutFlag != SET );
-   }
-   
-   // start the random countdown to check if the bus is not occupied
-   //do
-   //{
-   //   bus_uart_startRandomTimeout();
-   //   while( randomTimeoutFlag != SET );
-   //}while( framegapTimeoutFlag != SET );
-   
-   // disable receiver
-   //huart->Instance->CR1 &= ~USART_CR1_RE;
-   
-   // enable transmitter
-   //huart->Instance->CR1 |= USART_CR1_TE;
-   
-   // switch the RS485 transceiver into transmit mode
-   HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_SET);
-   
-   // start transmitting in interrupt mode
-   __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);         // disable idle line interrupt
-   __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);         // disable rx interrupt
-
-   // Clean & invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
-   
-   // send the data
-   if(HAL_UART_Transmit_DMA(huart, (uint8_t*)pData, length+(uint16_t)PREAMBLESFDLENGTH+(uint16_t)CRC32LENGTH ) != HAL_OK )
-   {
-      uart_tx_err_counter++;
-   }
+   return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -337,11 +335,10 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t le
    static uint32_t   uart_rx_err_counter;
 
    // wait until uart peripheral is ready
-   while(huart->gState != HAL_UART_STATE_READY);
+   while( huart->gState != HAL_UART_STATE_READY );
    
    // enable receiver
    //huart->Instance->CR1 |= USART_CR1_RE;
-   //huart->Instance->CR1 |= USART_CR1_UE;
    
    // disable transmitter
    //huart->Instance->CR1 &= ~USART_CR1_TE;
@@ -375,21 +372,15 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
    while(__HAL_UART_GET_FLAG(huart, UART_FLAG_TC) != SET);
    __HAL_UART_CLEAR_FLAG(huart,UART_CLEAR_TCF);
-   
-   // RS485 set to listening
-   //HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
-   
+
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);
    
-   //// disable receiver
-   //huart->Instance->CR1 &= ~USART_CR1_RE;
-   //
-   //// disable transmitter
-   //huart->Instance->CR1 &= ~USART_CR1_TE;
+   // dequeue the tail
+   queue_dequeue( &ethQueue );
    
    // start to receive data
-   uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
+   uart_receive( huart, rxBuffer, BUFFERLENGTH );
 }
 
 //------------------------------------------------------------------------------
@@ -435,18 +426,11 @@ void HAL_UART_AbortCpltCallback( UART_HandleTypeDef *UartHandle )
 /// \return    none
 void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
 {
-   static volatile uint16_t   framelength;
-   static uint16_t   framelengthError;
-   static uint16_t   preAmbleError;
-   static uint16_t   crcError;
-   static uint16_t   validBusFrame;
-   
-   // disable receiver
-   //huart->Instance->CR1 &= ~USART_CR1_RE;
-   //huart->Instance->CR1 &= ~USART_CR1_UE;
-   
-   // disable transmitter
-   //huart->Instance->CR1 &= ~USART_CR1_TE;
+   static uint32_t   framelength;
+   static uint32_t   framelengthError;
+   static uint32_t   preAmbleError;
+   static uint32_t   crcError;
+   static uint32_t   validBusFrame;
 
    // take action on the peripherals
    HAL_UART_DMAStop(huart);
@@ -472,7 +456,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
       // start receive irq
       preAmbleError++;
       uart_receive( huart, rxBuffer, BUFFERLENGTH );
-      return;
+      return ;
    }
    
    // crc check
@@ -485,8 +469,12 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    }
 
    // create a new node in the list, with the received data
-   list_insertData( rxBuffer, framelength, UART_TO_ETH );
    validBusFrame++;
+   
+   queue_enqueue( rxBuffer+MACDSTFIELD, (uint16_t)(framelength-PREAMBLESFDLENGTH-CRC32LENGTH), &uartQueue );
+   
+   // start to receive again
+   rxBuffer = queue_getHeadBuffer( &uartQueue );
    
    // start to receive again
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );
@@ -611,8 +599,12 @@ inline void bus_uart_framegapTimeoutCallback( void )
 {
    // set the timeout flag to 1
    framegapTimeoutFlag = SET;
+   
    // stop the timer
    HAL_TIM_Base_Stop_IT(&BusTimHandleRx);
+   
+   // start random timeout
+   bus_uart_startRandomTimeout();
 }
 
 // ----------------------------------------------------------------------------

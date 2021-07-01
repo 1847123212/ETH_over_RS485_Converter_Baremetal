@@ -142,6 +142,7 @@ inline void queue_dequeue( queue_handle_t *queueHandle )
       queueHandle->bytesOUT += queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].dataLength; // note: this are the frame bytes without preamble and crc value
       
       // set message status
+      //queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].data[0] = 0x00;
       queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].messageStatus = EMPTY_TX;
       
       // set tail number
@@ -160,7 +161,7 @@ inline void queue_dequeue( queue_handle_t *queueHandle )
 /// \param     [in]  queue_handle_t *queueHandle
 ///
 /// \return    none
-inline uint8_t* queue_queue( uint8_t* dataStart, uint16_t dataLength, queue_handle_t *queueHandle )
+inline uint8_t* queue_enqueue( uint8_t* dataStart, uint16_t dataLength, queue_handle_t *queueHandle )
 {
    // integer type wrap arround check and set for head and tail index
    if( queueHandle->headIndex < QUEUELENGTH )
@@ -200,6 +201,9 @@ inline uint8_t* queue_queue( uint8_t* dataStart, uint16_t dataLength, queue_hand
       
       // increment head index
       queueHandle->headIndex++;
+      
+      // set receiving state on the queue object
+      //queueHandle->queue[queueHandle->headIndex%QUEUELENGTH].messageStatus = RECEIVING_RX;
 
       // return new pointer
       return queueHandle->queue[queueHandle->headIndex%QUEUELENGTH].data;

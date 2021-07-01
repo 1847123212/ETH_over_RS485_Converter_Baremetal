@@ -46,12 +46,17 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "list.h"
+//#include "list.h"
+#include "queue.h"
 #include "eth.h"
 #include "led.h"
 #include "uart.h"
 #include <string.h>
 #include <stdlib.h>
+
+// Global variables defines ***************************************************
+queue_handle_t ethQueue;
+queue_handle_t uartQueue;
 
 /* Private includes ----------------------------------------------------------*/
 
@@ -66,7 +71,6 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void CPU_CACHE_Enable(void);
-
 
 /* Private user code ---------------------------------------------------------*/
 
@@ -90,21 +94,27 @@ int main( void )
    // init the toggling status led
    led_init();
 
-   // init list and start to reveive
-   list_init();
-   
    // initialize the ethernet interface
    eth_init();
    
    // initialize the uart with rs485 transceiver
    uart_init();
 
-   // Infinite loop
+   // set the queue on the uart io
+   uartQueue.messageDirection  = UART_TO_ETH;
+   uartQueue.output            = eth_output;
+   queue_init(&uartQueue);
+   
+   // set the queue on the usb io
+   ethQueue.messageDirection   = ETH_TO_UART;
+   ethQueue.output             = uart_output;
+   queue_init(&ethQueue);
+
+   // main while loop managing the lists for message ready to be send
    while (1)
    {
-      // check if a new list node has been added for sending it to the
-      // matching interface.
-      list_manager();
+      queue_manager( &uartQueue );
+      queue_manager( &ethQueue );
    }
 }
 

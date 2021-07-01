@@ -91,7 +91,7 @@ typedef struct BUS_UART_RX_s
 // Exported functions *********************************************************
 void                 uart_init                        ( void );
 void                 HAL_UART_IdleLnCallback          ( UART_HandleTypeDef *huart );
-void                 uart_output                      ( uint8_t* buffer, uint16_t length );
+uint8_t              uart_output                      ( uint8_t* buffer, uint16_t length );
 void                 uart_setUartAccessFlag           ( void );
 void                 uart_resetUartAccessFlag         ( void );
 void                 uart_ledTimerCallback            ( void );

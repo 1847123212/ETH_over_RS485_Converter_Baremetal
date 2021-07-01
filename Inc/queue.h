@@ -54,7 +54,7 @@
 
 // Exported defines ***********************************************************
 #define BUFFERLENGTH                       ( 1558u )
-#define QUEUELENGTH                        ( 40u )
+#define QUEUELENGTH                        ( 80u )
 
 // Exported types *************************************************************
 typedef enum
@@ -75,7 +75,8 @@ typedef enum
 {
    EMPTY_TX = 0,
    READY_FOR_TX,
-   PROCESSING_TX
+   PROCESSING_TX,
+   RECEIVING_RX
 } message_status_t;
 
 typedef struct queue_obj{
@@ -109,7 +110,7 @@ typedef struct queue
 void     queue_init              ( queue_handle_t *queueHandle );
 void     queue_manager           ( queue_handle_t *queueHandle );
 void     queue_dequeue           ( queue_handle_t *queueHandle );
-uint8_t* queue_queue             ( uint8_t* dataStart, uint16_t dataLength, queue_handle_t *queueHandle );
+uint8_t* queue_enqueue             ( uint8_t* dataStart, uint16_t dataLength, queue_handle_t *queueHandle );
 uint8_t* queue_getHeadBuffer     ( queue_handle_t *queueHandle );
 uint8_t* queue_getTailBuffer     ( queue_handle_t *queueHandle );
 

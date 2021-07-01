@@ -57,7 +57,7 @@
 
 // Exported functions *********************************************************
 void     eth_init               ( void );
-void     eth_output             ( uint8_t* buffer, uint16_t length );
+uint8_t  eth_output             ( uint8_t* buffer, uint16_t length );
 void     eth_link_update        ( void );
 //void     pbuf_free_custom(struct pbuf *p);
 #endif // __ETH_H

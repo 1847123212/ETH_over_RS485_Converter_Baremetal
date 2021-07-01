@@ -1440,10 +1440,10 @@
                     <name>$PROJ_DIR$\..\Inc\led.h</name>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\Inc\list.h</name>
+                    <name>$PROJ_DIR$\..\Inc\main.h</name>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\Inc\main.h</name>
+                    <name>$PROJ_DIR$\..\Inc\queue.h</name>
                 </file>
                 <file>
                     <name>$PROJ_DIR$\..\Inc\stm32h7xx_hal_conf.h</name>
@@ -1459,10 +1459,10 @@
                 <name>$PROJ_DIR$\..\Src\led.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\Src\list.c</name>
+                <name>$PROJ_DIR$\..\Src\main.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\Src\main.c</name>
+                <name>$PROJ_DIR$\..\Src\queue.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32h7xx_hal_msp.c</name>
