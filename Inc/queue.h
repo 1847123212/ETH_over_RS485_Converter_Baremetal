@@ -54,7 +54,7 @@
 
 // Exported defines ***********************************************************
 #define BUFFERLENGTH                       ( 1564u )
-#define QUEUELENGTH                        ( 1u )
+#define QUEUELENGTH                        ( 40u )
 
 // Exported types *************************************************************
 typedef enum
@@ -81,7 +81,7 @@ typedef enum
 
 typedef struct queue_obj
 {
-    uint8_t*            data;
+    uint8_t             data[BUFFERLENGTH];
     uint8_t*            dataStart;
     uint16_t            dataLength;
     message_status_t    messageStatus;

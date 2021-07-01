@@ -55,18 +55,18 @@
 #include <stdlib.h>
 
 // Global variables defines ***************************************************
-//#pragma data_alignment = 4
-static queue_handle_t ethQueue;
-//#pragma data_alignment = 4
-static queue_handle_t uartQueue;
+#pragma location = 0x24000000
+__root queue_handle_t ethQueue;
+#pragma location = 0x24010000
+__root queue_handle_t uartQueue;
 
-//#pragma location = 0x2400002c
+//#pragma location = 0x24000000
 //__root uint8_t  uartBuffer[BUFFERLENGTH];
-
-#pragma data_alignment = 4
-uint8_t uartBuffer[BUFFERLENGTH];
-#pragma data_alignment = 4
-static uint8_t ethBuffer[BUFFERLENGTH];
+//
+////#pragma data_alignment = 4
+////uint8_t uartBuffer[BUFFERLENGTH];
+//#pragma data_alignment = 4
+//static uint8_t ethBuffer[BUFFERLENGTH];
 
 /* Private includes ----------------------------------------------------------*/
 
@@ -93,7 +93,7 @@ static void CPU_CACHE_Enable(void);
 int main( void )
 {
    // enable the CPU cache memory
-   CPU_CACHE_Enable();
+   //CPU_CACHE_Enable();
    
    // reset of all peripherals, Initializes the Flash interface and the Systick
    HAL_Init();
@@ -104,13 +104,11 @@ int main( void )
    // set the queue on the uart io
    uartQueue.messageDirection  = UART_TO_ETH;
    uartQueue.output            = eth_output;
-   uartQueue.queue[0].data          =  uartBuffer;
    queue_init(&uartQueue);
     
    // set the queue on the usb io
    ethQueue.messageDirection   = ETH_TO_UART;
    ethQueue.output             = uart_output;
-   ethQueue.queue[0].data           = ethBuffer;
    queue_init(&ethQueue);
    
    // init the toggling status led

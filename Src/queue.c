@@ -222,7 +222,7 @@ inline uint8_t* queue_enqueue( uint8_t* dataStart, uint16_t dataLength, queue_ha
 /// \return    none
 uint8_t* queue_getHeadBuffer( queue_handle_t *queueHandle )
 {
-   return queueHandle->queue[0].data;
+   return queueHandle->queue[queueHandle->headIndex%QUEUELENGTH].data;
 }
 
 // ----------------------------------------------------------------------------

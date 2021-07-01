@@ -57,7 +57,7 @@
 #include "uart.h"
 
 // Private defines ************************************************************
-#define FRAMEGAPTIME   ( 1000u ) // 1=0.1 us (1000 for 6mbit), (2000 for 3mbit)
+#define FRAMEGAPTIME   ( 1500u ) // 1=0.1 us (1000 for 6mbit), (2000 for 3mbit)
 
 // Private types     **********************************************************
 
@@ -80,8 +80,8 @@ extern ETH_HandleTypeDef      heth;
 TIM_HandleTypeDef             BusTimHandleTx;
 TIM_HandleTypeDef             BusTimHandleRx;
 RNG_HandleTypeDef             RngHandle;
-static queue_handle_t         *uartQueue;
-static queue_handle_t         *ethQueue;
+extern queue_handle_t         uartQueue;
+extern queue_handle_t         ethQueue;
 
 // Private function prototypes ************************************************
 static void      crc_init                       ( void );
@@ -212,9 +212,9 @@ void uart_init( void )
    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
    
    // start to receive uart(rs485)
-   ethQueue = get_ethQueue();
-   uartQueue = get_uartQueue();
-   rxBuffer = queue_getHeadBuffer( uartQueue );
+   //ethQueue = get_ethQueue();
+   //uartQueue = get_uartQueue();
+   rxBuffer = queue_getHeadBuffer( &uartQueue );
    //rxBuffer = rxBuffer2;
    uart_receive( &huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
@@ -245,7 +245,7 @@ static void crc_init(void)
 
 uint8_t uart_output( uint8_t* buffer, uint16_t length )
 {
-   return 1;
+   //return 1;
    // check for the peripheral and bus access to be ready
    if( huart2.gState != HAL_UART_STATE_READY || randomTimeoutFlag != SET || framegapTimeoutFlag != SET )
    {
@@ -288,6 +288,7 @@ uint8_t uart_output( uint8_t* buffer, uint16_t length )
 
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)buffer, BUFFERLENGTH);
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)uartQueue, sizeof(uartQueue));
    
    // send the data
    if(HAL_UART_Transmit_DMA(&huart2, (uint8_t*)buffer, length+(uint16_t)PREAMBLESFDLENGTH+(uint16_t)CRC32LENGTH ) != HAL_OK )
@@ -345,6 +346,7 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *buffer, uint16_t l
    
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)buffer, BUFFERLENGTH);
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)uartQueue, sizeof(uartQueue));
    
    // start receiving in interrupt mode
    if(HAL_UART_Receive_DMA(huart, buffer, length) != HAL_OK)
@@ -368,7 +370,7 @@ void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
    HAL_UART_Abort_IT(huart);
    
    // dequeue the tail
-   queue_dequeue( ethQueue );
+   queue_dequeue( &ethQueue );
    
    // start to receive data
    uart_receive( huart, rxBuffer, BUFFERLENGTH );
@@ -425,6 +427,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    
    // Clean & invalidate data cache
    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)rxBuffer, BUFFERLENGTH);
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)uartQueue, sizeof(uartQueue));
       
    // take action on the peripherals
    HAL_UART_DMAStop(huart);
@@ -465,10 +468,10 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    // create a new node in the list, with the received data
    validBusFrame++;
    
-   queue_enqueue( rxBuffer+MACDSTFIELD, (uint16_t)(framelength-PREAMBLESFDLENGTH-CRC32LENGTH), uartQueue );
+   queue_enqueue( rxBuffer+MACDSTFIELD, (uint16_t)(framelength-PREAMBLESFDLENGTH-CRC32LENGTH), &uartQueue );
    
    // start to receive again
-   rxBuffer = queue_getHeadBuffer( uartQueue );
+   rxBuffer = queue_getHeadBuffer( &uartQueue );
    //rxBuffer = rxBuffer2;
    
    // start to receive again
@@ -517,7 +520,7 @@ inline static void bus_uart_startRandomTimeout( void )
    // reset the flag
    randomTimeoutFlag = RESET;
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 1000)+1000;//3mbit = (uint32_t)(bus_uart_getRandomNumber() % 200)*20+200; // 6mbit = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+100;
+   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 500)+10;//3mbit = (uint32_t)(bus_uart_getRandomNumber() % 200)*20+200; // 6mbit = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+100;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
