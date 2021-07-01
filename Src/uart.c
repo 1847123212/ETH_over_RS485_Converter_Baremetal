@@ -64,11 +64,12 @@
 // Private variables **********************************************************
 static const uint8_t          preAmbleSFD[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAB};
 static uint8_t                *rxBuffer;
-static uint8_t                txBuffer[BUFFERLENGTH];
+
+//#pragma data_alignment = 4
+//static uint8_t                rxBuffer2[BUFFERLENGTH];
 
 static volatile FlagStatus    randomTimeoutFlag = SET;  
 static volatile FlagStatus    framegapTimeoutFlag = SET;  
-static volatile FlagStatus    sending = false;
 
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
@@ -79,8 +80,8 @@ extern ETH_HandleTypeDef      heth;
 TIM_HandleTypeDef             BusTimHandleTx;
 TIM_HandleTypeDef             BusTimHandleRx;
 RNG_HandleTypeDef             RngHandle;
-extern queue_handle_t         uartQueue;
-extern queue_handle_t         ethQueue;
+static queue_handle_t         *uartQueue;
+static queue_handle_t         *ethQueue;
 
 // Private function prototypes ************************************************
 static void      crc_init                       ( void );
@@ -203,18 +204,18 @@ void uart_init( void )
    __HAL_LINKDMA(&huart2,hdmatx,hdma_usart2_tx);
 
    // set irq
-   HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(USART2_IRQn, 1, 0);
    HAL_NVIC_EnableIRQ(USART2_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 1, 0);
    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 1, 0);
    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
    
-   // set preamble in the tx buffer
-   memcpy(txBuffer, preAmbleSFD, PREAMBLESFDLENGTH);
-   
    // start to receive uart(rs485)
-   rxBuffer = queue_getHeadBuffer( &uartQueue );
+   ethQueue = get_ethQueue();
+   uartQueue = get_uartQueue();
+   rxBuffer = queue_getHeadBuffer( uartQueue );
+   //rxBuffer = rxBuffer2;
    uart_receive( &huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
 
@@ -244,6 +245,7 @@ static void crc_init(void)
 
 uint8_t uart_output( uint8_t* buffer, uint16_t length )
 {
+   return 1;
    // check for the peripheral and bus access to be ready
    if( huart2.gState != HAL_UART_STATE_READY || randomTimeoutFlag != SET || framegapTimeoutFlag != SET )
    {
@@ -325,38 +327,27 @@ static uint8_t uart_send( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t le
 /// \brief     Function to receive data over uart
 ///
 /// \param     [in]  UART_HandleTypeDef *huart
-/// \param     [in]  uint8_t *pData
+/// \param     [in]  uint8_t *buffer
 /// \param     [in]  uint16_t length
 ///
 /// \return    none
-static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t length )
+static void uart_receive( UART_HandleTypeDef *huart, uint8_t *buffer, uint16_t length )
 {
    // Error counter for debugging purposes
    static uint32_t   uart_rx_err_counter;
 
-   // wait until uart peripheral is ready
-   while( huart->gState != HAL_UART_STATE_READY );
-   
-   // enable receiver
-   //huart->Instance->CR1 |= USART_CR1_RE;
-   
-   // disable transmitter
-   //huart->Instance->CR1 &= ~USART_CR1_TE;
-   
    // RS485 set to listening
    HAL_GPIO_WritePin(GPIOD, UART_PIN_BUS_RTS|UART_PIN_BUS_CTS, GPIO_PIN_RESET);
    
    // enable idle line and rx interrupt
    __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
    __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
-   __HAL_UART_CLEAR_IT(&huart2, UART_CLEAR_IDLEF);
-   __HAL_UART_CLEAR_IDLEFLAG(&huart2);
    
    // Clean & invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)pData, BUFFERLENGTH);
+   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)buffer, BUFFERLENGTH);
    
    // start receiving in interrupt mode
-   if(HAL_UART_Receive_DMA(huart, pData, length) != HAL_OK)
+   if(HAL_UART_Receive_DMA(huart, buffer, length) != HAL_OK)
    {
       uart_rx_err_counter++;
    }
@@ -370,14 +361,14 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *pData, uint16_t le
 /// \return    none
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
-   while(__HAL_UART_GET_FLAG(huart, UART_FLAG_TC) != SET);
-   __HAL_UART_CLEAR_FLAG(huart,UART_CLEAR_TCF);
+   //while(__HAL_UART_GET_FLAG(huart, UART_FLAG_TC) != SET);
+   //__HAL_UART_CLEAR_FLAG(huart,UART_CLEAR_TCF);
 
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);
    
    // dequeue the tail
-   queue_dequeue( &ethQueue );
+   queue_dequeue( ethQueue );
    
    // start to receive data
    uart_receive( huart, rxBuffer, BUFFERLENGTH );
@@ -431,7 +422,10 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    static uint32_t   preAmbleError;
    static uint32_t   crcError;
    static uint32_t   validBusFrame;
-
+   
+   // Clean & invalidate data cache
+   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)rxBuffer, BUFFERLENGTH);
+      
    // take action on the peripherals
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);
@@ -442,7 +436,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    framelength = BUFFERLENGTH - __HAL_DMA_GET_COUNTER(huart->hdmarx);
    
    // abort if input data is 0 bytes in length or too long or too short for a ethernet frame
-   if( (framelength == (uint16_t)0) || (framelength > (uint16_t)(ETHSIZE+PREAMBLESFDLENGTH)) || (framelength < (uint16_t)MINSIZE))
+   if( (framelength > (uint16_t)(ETHSIZE+PREAMBLESFDLENGTH)) || (framelength < (uint16_t)MINSIZE))
    {
       // start receive irq
       framelengthError++;
@@ -471,10 +465,11 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    // create a new node in the list, with the received data
    validBusFrame++;
    
-   queue_enqueue( rxBuffer+MACDSTFIELD, (uint16_t)(framelength-PREAMBLESFDLENGTH-CRC32LENGTH), &uartQueue );
+   queue_enqueue( rxBuffer+MACDSTFIELD, (uint16_t)(framelength-PREAMBLESFDLENGTH-CRC32LENGTH), uartQueue );
    
    // start to receive again
-   rxBuffer = queue_getHeadBuffer( &uartQueue );
+   rxBuffer = queue_getHeadBuffer( uartQueue );
+   //rxBuffer = rxBuffer2;
    
    // start to receive again
    uart_receive( huart, (uint8_t*)rxBuffer, BUFFERLENGTH );

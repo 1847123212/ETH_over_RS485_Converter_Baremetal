@@ -55,8 +55,18 @@
 #include <stdlib.h>
 
 // Global variables defines ***************************************************
-queue_handle_t ethQueue;
-queue_handle_t uartQueue;
+//#pragma data_alignment = 4
+static queue_handle_t ethQueue;
+//#pragma data_alignment = 4
+static queue_handle_t uartQueue;
+
+//#pragma location = 0x2400002c
+//__root uint8_t  uartBuffer[BUFFERLENGTH];
+
+#pragma data_alignment = 4
+uint8_t uartBuffer[BUFFERLENGTH];
+#pragma data_alignment = 4
+static uint8_t ethBuffer[BUFFERLENGTH];
 
 /* Private includes ----------------------------------------------------------*/
 
@@ -91,6 +101,18 @@ int main( void )
    // configure the system clock
    SystemClock_Config();
    
+   // set the queue on the uart io
+   uartQueue.messageDirection  = UART_TO_ETH;
+   uartQueue.output            = eth_output;
+   uartQueue.queue[0].data          =  uartBuffer;
+   queue_init(&uartQueue);
+    
+   // set the queue on the usb io
+   ethQueue.messageDirection   = ETH_TO_UART;
+   ethQueue.output             = uart_output;
+   ethQueue.queue[0].data           = ethBuffer;
+   queue_init(&ethQueue);
+   
    // init the toggling status led
    led_init();
 
@@ -100,22 +122,22 @@ int main( void )
    // initialize the uart with rs485 transceiver
    uart_init();
 
-   // set the queue on the uart io
-   uartQueue.messageDirection  = UART_TO_ETH;
-   uartQueue.output            = eth_output;
-   queue_init(&uartQueue);
-   
-   // set the queue on the usb io
-   ethQueue.messageDirection   = ETH_TO_UART;
-   ethQueue.output             = uart_output;
-   queue_init(&ethQueue);
-
    // main while loop managing the lists for message ready to be send
    while (1)
    {
-      queue_manager( &uartQueue );
-      queue_manager( &ethQueue );
+     queue_manager( &uartQueue );
+     queue_manager( &ethQueue );
    }
+}
+
+queue_handle_t* get_ethQueue( void )
+{
+   return &ethQueue;
+}
+
+queue_handle_t* get_uartQueue( void )
+{
+   return &uartQueue;
 }
 
 // ----------------------------------------------------------------------------

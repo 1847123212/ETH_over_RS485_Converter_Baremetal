@@ -1,27 +1,27 @@
-"C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\Src\stm32h7xx_hal_msp.c"
+"D:\GitHub\ETH_over_RS485_Converter_Baremetal\Src\stm32h7xx_hal_msp.c"
 -std=c11
 -ferror-limit=0
 -fbracket-depth=512
 -funsigned-char
 -MD
 -MF
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\EWARM\ETH_RS485_Networkbridge\BrowseInfo\Application\User\stm32h7xx_hal_msp.pbi.dep
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\ETH_RS485_Networkbridge\BrowseInfo\Application\User\stm32h7xx_hal_msp.pbi.dep
 -o
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\EWARM\ETH_RS485_Networkbridge\BrowseInfo\Application\User\stm32h7xx_hal_msp.pbi
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\ETH_RS485_Networkbridge\BrowseInfo\Application\User\stm32h7xx_hal_msp.pbi
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\Src
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Src
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\EWARM/../Inc\
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Inc
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/STM32H7xx_HAL_Driver/Inc\
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/STM32H7xx_HAL_Driver/Inc
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy\
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/CMSIS/Device/ST/STM32H7xx/Include\
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/CMSIS/Device/ST/STM32H7xx/Include
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/CMSIS/Include\
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM/../Drivers/CMSIS/Include
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\EWARM\..\Drivers\BSP\Components\lan8742\
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\EWARM\..\Drivers\BSP\Components\lan8742
 -I
 C:\Program Files\IAR Systems\Embedded Workbench 9.0\arm\inc\c\aarch32
 -I
@@ -29,17 +29,17 @@ C:\Program Files\IAR Systems\Embedded Workbench 9.0\arm\inc
 -I
 C:\Program Files\IAR Systems\Embedded Workbench 9.0\arm\inc\c
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\Inc
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Inc
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Inc
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Inc
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Inc\Legacy
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\STM32H7xx_HAL_Driver\Inc\Legacy
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\Drivers\CMSIS\Device\ST\STM32H7xx\Include
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\CMSIS\Device\ST\STM32H7xx\Include
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\Drivers\CMSIS\Include
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\CMSIS\Include
 -I
-C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485_Converter_Baremetal\Drivers\BSP\Components\lan8742
+D:\GitHub\ETH_over_RS485_Converter_Baremetal\Drivers\BSP\Components\lan8742
 -D__CHAR_BITS__=8
 -D__CHAR_MAX__=0xff
 -D__CHAR_MIN__=0
@@ -227,6 +227,7 @@ C:\Users\nkorn\OneDrive - Reichle & De-Massari Holding AG\Desktop\ETH_over_RS485
 -D__DEF_STACK_MEM_INDEX__=0
 -D__PRAGMA_PACK_ON__=1
 -D__MULTIPLE_INHERITANCE__=1
+-D__FOR_DEBUG__=
 -D__AAPCS_VFP__=1
 -D__ARM4TM__=4
 -D__ARM5TM__=5

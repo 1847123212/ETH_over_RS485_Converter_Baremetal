@@ -53,8 +53,8 @@
 #include "stm32h7xx_hal.h"
 
 // Exported defines ***********************************************************
-#define BUFFERLENGTH                       ( 1558u )
-#define QUEUELENGTH                        ( 80u )
+#define BUFFERLENGTH                       ( 1564u )
+#define QUEUELENGTH                        ( 1u )
 
 // Exported types *************************************************************
 typedef enum
@@ -79,8 +79,9 @@ typedef enum
    RECEIVING_RX
 } message_status_t;
 
-typedef struct queue_obj{
-    uint8_t             data[BUFFERLENGTH];
+typedef struct queue_obj
+{
+    uint8_t*            data;
     uint8_t*            dataStart;
     uint16_t            dataLength;
     message_status_t    messageStatus;
@@ -88,7 +89,7 @@ typedef struct queue_obj{
 
 typedef struct queue 
 {
-   queue_status_t       queueStatus;
+   queue_obj_t          queue[QUEUELENGTH];
    uint32_t             dataPacketsIN; 
    uint32_t             bytesIN;
    uint32_t             dataPacketsOUT;
@@ -97,8 +98,8 @@ typedef struct queue
    uint32_t             queueFull;
    uint32_t             queueLength;
    uint32_t             queueLengthPeak;
+   queue_status_t       queueStatus;
    message_direction_t  messageDirection;   
-   queue_obj_t          queue[QUEUELENGTH];
    uint32_t             headIndex;
    uint32_t             tailIndex;
    uint32_t             tailError;

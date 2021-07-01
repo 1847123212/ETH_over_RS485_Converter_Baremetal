@@ -54,6 +54,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
+#include "queue.h"
 
 /* Exported types ------------------------------------------------------------*/
 // UART BUS
@@ -77,6 +78,9 @@ typedef enum
 void Error_Handler(void);
 void setRandomWait( void );
 void resetRandomWait( void );
+
+queue_handle_t *get_ethQueue( void );
+queue_handle_t *get_uartQueue( void );
 
 /* USER CODE BEGIN EFP */
 

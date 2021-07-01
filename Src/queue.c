@@ -142,7 +142,7 @@ inline void queue_dequeue( queue_handle_t *queueHandle )
       queueHandle->bytesOUT += queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].dataLength; // note: this are the frame bytes without preamble and crc value
       
       // set message status
-      //queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].data[0] = 0x00;
+      memset(queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].data,0xff,BUFFERLENGTH);
       queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].messageStatus = EMPTY_TX;
       
       // set tail number
@@ -222,7 +222,7 @@ inline uint8_t* queue_enqueue( uint8_t* dataStart, uint16_t dataLength, queue_ha
 /// \return    none
 uint8_t* queue_getHeadBuffer( queue_handle_t *queueHandle )
 {
-   return queueHandle->queue[queueHandle->headIndex%QUEUELENGTH].data;
+   return queueHandle->queue[0].data;
 }
 
 // ----------------------------------------------------------------------------
