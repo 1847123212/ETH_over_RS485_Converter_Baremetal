@@ -60,14 +60,6 @@ __root queue_handle_t ethQueue;
 #pragma location = 0x24010000
 __root queue_handle_t uartQueue;
 
-//#pragma location = 0x24000000
-//__root uint8_t  uartBuffer[BUFFERLENGTH];
-//
-////#pragma data_alignment = 4
-////uint8_t uartBuffer[BUFFERLENGTH];
-//#pragma data_alignment = 4
-//static uint8_t ethBuffer[BUFFERLENGTH];
-
 /* Private includes ----------------------------------------------------------*/
 
 /* Private typedef -----------------------------------------------------------*/

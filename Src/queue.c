@@ -142,7 +142,7 @@ inline void queue_dequeue( queue_handle_t *queueHandle )
       queueHandle->bytesOUT += queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].dataLength; // note: this are the frame bytes without preamble and crc value
       
       // set message status
-      memset(queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].data,0xff,BUFFERLENGTH);
+      queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].data[0] = 0x00;
       queueHandle->queue[queueHandle->tailIndex%QUEUELENGTH].messageStatus = EMPTY_TX;
       
       // set tail number

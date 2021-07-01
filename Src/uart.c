@@ -52,7 +52,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-//#include "list.h"
 #include "queue.h"
 #include "uart.h"
 
@@ -204,11 +203,11 @@ void uart_init( void )
    __HAL_LINKDMA(&huart2,hdmatx,hdma_usart2_tx);
 
    // set irq
-   HAL_NVIC_SetPriority(USART2_IRQn, 1, 0);
+   HAL_NVIC_SetPriority(USART2_IRQn, 0, 1);
    HAL_NVIC_EnableIRQ(USART2_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 1, 0);
+   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 1);
    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 1, 0);
+   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 1);
    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
    
    // start to receive uart(rs485)
@@ -255,23 +254,23 @@ uint8_t uart_output( uint8_t* buffer, uint16_t length )
    uint32_t   crc32;
    uint8_t*   crcFragment;
    
-   //if( memcmp( buffer, preAmbleSFD, 8u ) != 0 )
-   //{
-    // copy preamble into buffer, caution this is dangerous but since the
-    // usb data header is bigger than 8 this is no problem for this case.
-    memcpy( buffer, preAmbleSFD, 8u );
-    
-    // calculate crc32 value
-    crc32 = uart_calcCRC( (uint32_t*)&buffer[MACDSTFIELD], (uint32_t)length );
-    
-    // append crc to the outputbuffer
-    crcFragment = (uint8_t*)&crc32;
-    
-    for( uint8_t i=0, j=3; i<4; i++,j-- )
-    {
-       buffer[MACDSTFIELD+length+i] = crcFragment[j];
-    }
-   //}
+   if( memcmp( buffer, preAmbleSFD, 8u ) != 0 )
+   {
+      // copy preamble into buffer, caution this is dangerous but since the
+      // usb data header is bigger than 8 this is no problem for this case.
+      memcpy( buffer, preAmbleSFD, 8u );
+      
+      // calculate crc32 value
+      crc32 = uart_calcCRC( (uint32_t*)&buffer[MACDSTFIELD], (uint32_t)length );
+      
+      // append crc to the outputbuffer
+      crcFragment = (uint8_t*)&crc32;
+      
+      for( uint8_t i=0, j=3; i<4; i++,j-- )
+      {
+         buffer[MACDSTFIELD+length+i] = crcFragment[j];
+      }
+   }
    
    // check for the peripheral and bus access to be ready
    if( huart2.gState != HAL_UART_STATE_READY || randomTimeoutFlag != SET || framegapTimeoutFlag != SET )
@@ -287,8 +286,8 @@ uint8_t uart_output( uint8_t* buffer, uint16_t length )
    __HAL_UART_DISABLE_IT(&huart2, UART_IT_RXNE);         // disable rx interrupt
 
    // Clean & invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)buffer, BUFFERLENGTH);
-   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)uartQueue, sizeof(uartQueue));
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)buffer, BUFFERLENGTH);
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)(((uint32_t)&ethQueue) & ~(uint32_t)0x1F), 0x0F000+32u);
    
    // send the data
    if(HAL_UART_Transmit_DMA(&huart2, (uint8_t*)buffer, length+(uint16_t)PREAMBLESFDLENGTH+(uint16_t)CRC32LENGTH ) != HAL_OK )
@@ -345,8 +344,8 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *buffer, uint16_t l
    __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
    
    // Clean & invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)buffer, BUFFERLENGTH);
-   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)uartQueue, sizeof(uartQueue));
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)buffer, BUFFERLENGTH);
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)(((uint32_t)&uartQueue) & ~(uint32_t)0x1F), 0x0F000+32u);
    
    // start receiving in interrupt mode
    if(HAL_UART_Receive_DMA(huart, buffer, length) != HAL_OK)
@@ -426,8 +425,8 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    static uint32_t   validBusFrame;
    
    // Clean & invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)rxBuffer, BUFFERLENGTH);
-   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)uartQueue, sizeof(uartQueue));
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)rxBuffer, BUFFERLENGTH);
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)(((uint32_t)&uartQueue) & ~(uint32_t)0x1F), 0x0F000+32u);
       
    // take action on the peripherals
    HAL_UART_DMAStop(huart);
