@@ -64,9 +64,6 @@
 static const uint8_t          preAmbleSFD[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAB};
 static uint8_t                *rxBuffer;
 
-//#pragma data_alignment = 4
-//static uint8_t                rxBuffer2[BUFFERLENGTH];
-
 static volatile FlagStatus    randomTimeoutFlag = SET;  
 static volatile FlagStatus    framegapTimeoutFlag = SET;  
 
@@ -211,10 +208,7 @@ void uart_init( void )
    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
    
    // start to receive uart(rs485)
-   //ethQueue = get_ethQueue();
-   //uartQueue = get_uartQueue();
    rxBuffer = queue_getHeadBuffer( &uartQueue );
-   //rxBuffer = rxBuffer2;
    uart_receive( &huart2, (uint8_t*)rxBuffer, BUFFERLENGTH );
 }
 
@@ -244,7 +238,6 @@ static void crc_init(void)
 
 uint8_t uart_output( uint8_t* buffer, uint16_t length )
 {
-   //return 1;
    // check for the peripheral and bus access to be ready
    if( huart2.gState != HAL_UART_STATE_READY || randomTimeoutFlag != SET || framegapTimeoutFlag != SET )
    {
@@ -362,9 +355,11 @@ static void uart_receive( UART_HandleTypeDef *huart, uint8_t *buffer, uint16_t l
 /// \return    none
 void HAL_UART_TxCpltCallback( UART_HandleTypeDef *huart )
 {
-   //while(__HAL_UART_GET_FLAG(huart, UART_FLAG_TC) != SET);
-   //__HAL_UART_CLEAR_FLAG(huart,UART_CLEAR_TCF);
+   // clear usart tansmission complete flag
+   while(__HAL_UART_GET_FLAG(huart, UART_FLAG_TC) != SET);
+   __HAL_UART_CLEAR_FLAG(huart,UART_CLEAR_TCF);
 
+   // stop dma and abbort uart it
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);
    
@@ -427,7 +422,7 @@ void HAL_UART_IdleLnCallback( UART_HandleTypeDef *huart )
    // Clean & invalidate data cache
    //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)rxBuffer, BUFFERLENGTH);
    //SCB_CleanInvalidateDCache_by_Addr((uint32_t*)(((uint32_t)&uartQueue) & ~(uint32_t)0x1F), 0x0F000+32u);
-      
+   
    // take action on the peripherals
    HAL_UART_DMAStop(huart);
    HAL_UART_Abort_IT(huart);

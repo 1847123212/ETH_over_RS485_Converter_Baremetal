@@ -405,7 +405,7 @@ uint8_t eth_output( uint8_t* buffer, uint16_t length )
    }
    
    // Clean and Invalidate data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
+  // SCB_CleanInvalidateDCache_by_Addr((uint32_t*)Tx_Buff, (ETH_TX_DESC_CNT*ETH_TX_BUFFER_SIZE));
 
    memcpy((void*)Tx_Buff, buffer, length);  
    
@@ -582,7 +582,7 @@ void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef *heth )
    static ETH_BufferTypeDef RxBuff;
 
    // invalidate and clean data cache
-   SCB_CleanInvalidateDCache_by_Addr((uint32_t *)Rx_Buff, (ETH_RX_DESC_CNT*ETH_RX_BUFFER_SIZE));
+   //SCB_CleanInvalidateDCache_by_Addr((uint32_t *)Rx_Buff, (ETH_RX_DESC_CNT*ETH_RX_BUFFER_SIZE));
    
    // get data from the buffer
    HAL_ETH_GetRxDataBuffer(heth, &RxBuff);
