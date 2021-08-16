@@ -8,9 +8,9 @@
 ///
 /// \author    Nico Korn
 ///
-/// \version   1.0
+/// \version   1.0.0.1
 ///
-/// \date      27102020
+/// \date      16082021
 /// 
 /// \copyright Copyright 2020 Reichle & De-Massari AG
 ///            
@@ -56,7 +56,7 @@
 #include "uart.h"
 
 // Private defines ************************************************************
-#define FRAMEGAPTIME   ( 1500u ) // 1=0.1 us (1000 for 6mbit), (2000 for 3mbit)
+#define FRAMEGAPTIME   ( 2000u ) // 1=0.1 us (1000 for 6mbit), (2000 for 3mbit)
 
 // Private types     **********************************************************
 
@@ -137,7 +137,7 @@ void uart_init( void )
    
    // USART2 2 init
    huart2.Instance                           = USART2;
-   huart2.Init.BaudRate                      = 6000000u;
+   huart2.Init.BaudRate                      = 3000000u;
    huart2.Init.WordLength                    = UART_WORDLENGTH_8B;
    huart2.Init.StopBits                      = UART_STOPBITS_1;
    huart2.Init.Parity                        = UART_PARITY_NONE;
@@ -514,7 +514,7 @@ inline static void bus_uart_startRandomTimeout( void )
    // reset the flag
    randomTimeoutFlag = RESET;
    // set a random number for the auto reload register
-   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 500)+10;//3mbit = (uint32_t)(bus_uart_getRandomNumber() % 200)*20+200; // 6mbit = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+100;
+   TIM3->ARR = (uint32_t)(bus_uart_getRandomNumber() % 200)*20+200;//3mbit = (uint32_t)(bus_uart_getRandomNumber() % 200)*20+200; // 6mbit = (uint32_t)(bus_uart_getRandomNumber() % 100)*10+100;
    // set counter value to 0
    TIM3->CNT = 0;
    // start the timer
