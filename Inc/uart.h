@@ -104,5 +104,7 @@ FlagStatus           bus_uart_getRxIdleFlag           ( void );
 void                 bus_uart_randomTimeoutCallback   ( void );
 void                 bus_uart_framegapTimeoutCallback ( void );
 void                 bus_uart_startFramegap           ( void );
-void send( void );
+void                 HAL_UART_triggerMsgCallback      ( void );
+void                 HAL_UART_resetBusIdleFlag        ( void );
+void                 send                             ( void );
 #endif // __PCU_BUS_UART_H

@@ -57,7 +57,8 @@
 // Exported types *************************************************************
 
 // Exported functions *********************************************************
-void  led_ledTimerCallback   ( void );
-void  led_init               ( void );
+void  led_ledTimerCallback    ( void );
+void  led_init                ( void );
+void  led_resetTimer          ( void );
 
 #endif // __LED_H

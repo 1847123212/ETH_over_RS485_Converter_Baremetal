@@ -137,7 +137,29 @@ static void led_timer_init( void )
 /// \return    none
 void led_ledTimerCallback( void )
 {
+   // toggle status pin, showing that the bridge is running
    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+   
+   // set bus idle flag
+   HAL_UART_triggerMsgCallback();
+}
+
+//------------------------------------------------------------------------------
+/// \brief     firmware operation led callback
+///
+/// \param     none
+///
+/// \return    none
+void led_resetTimer( void )
+{
+   // toggle status pin, showing that the bridge is running
+   HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+   
+   // reset timer
+  __HAL_TIM_DISABLE_IT(&LedTimHandle, TIM_IT_UPDATE);
+   TIM4->CNT = 0;
+   __HAL_TIM_ENABLE_IT(&LedTimHandle, TIM_IT_UPDATE);
+   __HAL_TIM_ENABLE(&LedTimHandle);
 }
 
 /********************** (C) COPYRIGHT Reichle & De-Massari *****END OF FILE****/

@@ -56,16 +56,27 @@
 #include "uart.h"
 
 // Private defines ************************************************************
-#define FRAMEGAPTIME   ( 2000u ) // 1=0.1 us (1000 for 6mbit), (2000 for 3mbit)
+#define FRAMEGAPTIME       ( 2000u ) // 1=0.1 us (1000 for 6mbit), (2000 for 3mbit)
+#define TRIGGERMSGLENGTH   ( 60u )
 
 // Private types     **********************************************************
 
 // Private variables **********************************************************
 static const uint8_t          preAmbleSFD[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAB};
+static const uint8_t          deviceTrigger[] = 
+{
+   //0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xab,
+   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x34, 0x4f, 0x5c, 0x00, 0x01, 0xda, 0x08, 0x06, 0x00, 0x01,
+   0x08, 0x00, 0x06, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01,
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x01, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
 static uint8_t                *rxBuffer;
 
 static volatile FlagStatus    randomTimeoutFlag = SET;  
 static volatile FlagStatus    framegapTimeoutFlag = SET;  
+static volatile FlagStatus    busIdleFlag = SET;  
+
 
 // Global variables ***********************************************************
 UART_HandleTypeDef            huart2;
@@ -627,6 +638,34 @@ static uint32_t bus_uart_getRandomNumber( void )
    uint32_t rand;
    HAL_RNG_GenerateRandomNumber(&RngHandle,&rand);
 	return rand;
+}
+
+//------------------------------------------------------------------------------
+/// \brief     Checks if a trigger message shall be send                 
+///
+/// \param     none
+///
+/// \return    none
+void HAL_UART_triggerMsgCallback( void )
+{
+   if( busIdleFlag != RESET )
+   {
+      // create a new node in the list, with the received data
+      memcpy( queue_getHeadBuffer(&ethQueue)+PREAMBLESFDLENGTH, deviceTrigger, TRIGGERMSGLENGTH );
+      queue_enqueue( queue_getHeadBuffer(&ethQueue), TRIGGERMSGLENGTH, &ethQueue );
+   }
+   busIdleFlag = SET;
+}
+
+//------------------------------------------------------------------------------
+/// \brief     Checks if a trigger message shall be send                 
+///
+/// \param     none
+///
+/// \return    none
+void HAL_UART_resetBusIdleFlag( void )
+{
+   busIdleFlag = RESET;
 }
 
 /********************** (C) COPYRIGHT Reichle & De-Massari *****END OF FILE****/

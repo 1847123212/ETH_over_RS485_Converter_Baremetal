@@ -163,6 +163,10 @@ inline void queue_dequeue( queue_handle_t *queueHandle )
 /// \return    none
 inline uint8_t* queue_enqueue( uint8_t* dataStart, uint16_t dataLength, queue_handle_t *queueHandle )
 {
+   // there is transmission activity, reset idle flag
+   HAL_UART_resetBusIdleFlag();
+   led_resetTimer();
+   
    // integer type wrap arround check and set for head and tail index
    if( queueHandle->headIndex < QUEUELENGTH )
    {
